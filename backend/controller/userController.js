@@ -17,7 +17,7 @@ exports.signup = async (req, res) => {
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET, { expiresIn: '1d' });
 
     res.status(201).json({
       message: 'User created successfully',
@@ -44,7 +44,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET, { expiresIn: '1d' });
 
     res.status(200).json({
       message: 'Login successful',
