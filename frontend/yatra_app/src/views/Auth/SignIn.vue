@@ -17,6 +17,7 @@
             </label>
             <input
               type="email"
+              style="width: 355px;"
               id="email"
               v-model="formData.email"
               placeholder="Enter your email"
@@ -36,6 +37,7 @@
                 :type="showPassword ? 'text' : 'password'"
                 id="password"
                 v-model="formData.password"
+                style="width: 321px;"
                 placeholder="Enter your password"
                 required
                 :class="{ 'error': errors.password }"
