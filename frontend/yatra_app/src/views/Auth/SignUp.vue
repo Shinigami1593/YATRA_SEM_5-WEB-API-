@@ -69,6 +69,7 @@
                 <input
                   type="text"
                   id="firstName"
+                  style="width: auto;"
                   v-model="formData.firstName"
                   placeholder="Enter first name"
                   required
@@ -85,6 +86,7 @@
                 <input
                   type="text"
                   id="lastName"
+                  style="width: auto;"
                   v-model="formData.lastName"
                   placeholder="Enter last name"
                   required
@@ -102,27 +104,13 @@
               <input
                 type="email"
                 id="email"
+                style="width: 418px;"
                 v-model="formData.email"
                 placeholder="Enter your email"
                 required
                 :class="{ 'error': errors.email }"
               />
               <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
-            </div>
-
-            <div class="form-group">
-              <label for="phone">
-                <i class="bi bi-telephone"></i>
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                v-model="formData.phone"
-                placeholder="Enter your phone number"
-                :class="{ 'error': errors.phone }"
-              />
-              <span v-if="errors.phone" class="error-message">{{ errors.phone }}</span>
             </div>
 
             <div class="form-group">
@@ -134,6 +122,7 @@
                 <input
                   :type="showPassword ? 'text' : 'password'"
                   id="password"
+                  style="width: 384px;"
                   v-model="formData.password"
                   placeholder="Create a strong password"
                   required
@@ -164,6 +153,7 @@
               <input
                 type="password"
                 id="confirmPassword"
+                style="width: 418px;"
                 v-model="formData.confirmPassword"
                 placeholder="Confirm your password"
                 required
@@ -177,12 +167,6 @@
                 <input type="checkbox" v-model="formData.agreeToTerms" required>
                 <span class="checkmark"></span>
                 I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a>
-              </label>
-              
-              <label class="checkbox-container">
-                <input type="checkbox" v-model="formData.subscribeNewsletter">
-                <span class="checkmark"></span>
-                Subscribe to our newsletter for updates and tips
               </label>
             </div>
 
@@ -215,9 +199,9 @@
 
           <div class="signin-link">
             <p>Already have an account? 
-              <a href="#" @click.prevent="switchToSignIn" class="signin-link-btn">
+              <router-link to="/login" class="signin-link-btn">
                 Sign in here
-              </a>
+              </router-link>
             </p>
           </div>
         </div>
@@ -227,134 +211,97 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import AuthService from '../../stores/Auth';
 
-// Emits
-const emit = defineEmits(['switch-to-signin', 'register'])
-
-// Reactive data
+const router = useRouter();
 const formData = ref({
   firstName: '',
   lastName: '',
   email: '',
-  phone: '',
   password: '',
   confirmPassword: '',
   agreeToTerms: false,
-  subscribeNewsletter: false
-})
+});
+const errors = ref({});
+const isLoading = ref(false);
+const showPassword = ref(false);
 
-const errors = ref({})
-const isLoading = ref(false)
-const showPassword = ref(false)
-
-// Computed properties
 const passwordStrength = computed(() => {
-  const password = formData.value.password
-  if (!password) return { width: '0%', class: '', text: '' }
+  const password = formData.value.password;
+  if (!password) return { width: '0%', class: '', text: '' };
   
-  let score = 0
-  if (password.length >= 8) score++
-  if (/[a-z]/.test(password)) score++
-  if (/[A-Z]/.test(password)) score++
-  if (/[0-9]/.test(password)) score++
-  if (/[^A-Za-z0-9]/.test(password)) score++
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
   
-  if (score < 2) return { width: '20%', class: 'weak', text: 'Weak' }
-  if (score < 3) return { width: '40%', class: 'fair', text: 'Fair' }
-  if (score < 4) return { width: '60%', class: 'good', text: 'Good' }
-  if (score < 5) return { width: '80%', class: 'strong', text: 'Strong' }
-  return { width: '100%', class: 'very-strong', text: 'Very Strong' }
-})
+  if (score < 2) return { width: '20%', class: 'weak', text: 'Weak' };
+  if (score < 3) return { width: '40%', class: 'fair', text: 'Fair' };
+  if (score < 4) return { width: '60%', class: 'good', text: 'Good' };
+  if (score < 5) return { width: '80%', class: 'strong', text: 'Strong' };
+  return { width: '100%', class: 'very-strong', text: 'Very Strong' };
+});
 
-// Methods
 const validateForm = () => {
-  errors.value = {}
+  errors.value = {};
   
   if (!formData.value.firstName.trim()) {
-    errors.value.firstName = 'First name is required'
+    errors.value.firstName = 'First name is required';
   }
   
   if (!formData.value.lastName.trim()) {
-    errors.value.lastName = 'Last name is required'
+    errors.value.lastName = 'Last name is required';
   }
   
   if (!formData.value.email) {
-    errors.value.email = 'Email is required'
+    errors.value.email = 'Email is required';
   } else if (!/\S+@\S+\.\S+/.test(formData.value.email)) {
-    errors.value.email = 'Please enter a valid email'
-  }
-  
-  if (formData.value.phone && !/^\+?[\d\s\-$$$$]+$/.test(formData.value.phone)) {
-    errors.value.phone = 'Please enter a valid phone number'
+    errors.value.email = 'Please enter a valid email';
   }
   
   if (!formData.value.password) {
-    errors.value.password = 'Password is required'
+    errors.value.password = 'Password is required';
   } else if (formData.value.password.length < 8) {
-    errors.value.password = 'Password must be at least 8 characters'
+    errors.value.password = 'Password must be at least 8 characters';
   }
   
   if (!formData.value.confirmPassword) {
-    errors.value.confirmPassword = 'Please confirm your password'
+    errors.value.confirmPassword = 'Please confirm your password';
   } else if (formData.value.password !== formData.value.confirmPassword) {
-    errors.value.confirmPassword = 'Passwords do not match'
+    errors.value.confirmPassword = 'Passwords do not match';
   }
   
   if (!formData.value.agreeToTerms) {
-    errors.value.terms = 'You must agree to the terms and conditions'
+    errors.value.terms = 'You must agree to the terms and conditions';
   }
   
-  return Object.keys(errors.value).length === 0
-}
+  return Object.keys(errors.value).length === 0;
+};
 
 const handleSignUp = async () => {
-  if (!validateForm()) return
+  if (!validateForm()) return;
   
-  isLoading.value = true
+  isLoading.value = true;
   
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    
-    // Mock successful registration
-    const userData = {
-      id: Date.now(),
-      name: `${formData.value.firstName} ${formData.value.lastName}`,
-      email: formData.value.email,
-      phone: formData.value.phone
-    }
-    
-    const token = 'mock-jwt-token-' + Date.now()
-    
-    // Emit register event
-    emit('register', userData, token)
-    
-    alert('Account created successfully! Welcome to Yatra!')
+    await AuthService.register(formData.value);
+    router.push('/login');
   } catch (error) {
-    errors.value.general = 'Registration failed. Please try again.'
+    errors.value.general = error.message || 'Registration failed. Please try again.';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
-const switchToSignIn = () => {
-  emit('switch-to-signin')
-}
-
-// Lifecycle
-onMounted(() => {
-  // Load Bootstrap Icons if not already loaded
-  if (!document.querySelector('link[href*="bootstrap-icons"]')) {
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css'
-    document.head.appendChild(link)
-  }
-})
+// Note: Bootstrap Icons are loaded in App.vue or main.js to avoid duplication
 </script>
 
 <style scoped>
+/* Retain your original styles unchanged */
 .signup-page {
   min-height: 100vh;
   width: 100vw;
@@ -378,7 +325,7 @@ onMounted(() => {
 
 /* Left Side - Branding */
 .signup-left {
-  background: linear-gradient(135deg, #00D664 0%, #00C956 50%, #00B84A 100%);
+  background: linear-gradient(135deg, #00D664 0%, #0c7038 50%, #00B84A 100%);
   padding: 4rem;
   display: flex;
   flex-direction: column;

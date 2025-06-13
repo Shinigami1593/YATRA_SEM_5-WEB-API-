@@ -1,5 +1,5 @@
 <template>
-  <div class="signin-page">
+  <div class="signin-page" style="margin-top: 0px;">
     <div class="signin-container">
       <!-- Left Side - Branding -->
       <div class="signin-left">
@@ -60,6 +60,7 @@
               <input
                 type="email"
                 id="email"
+                style="width: 366px;"
                 v-model="formData.email"
                 placeholder="Enter your email"
                 required
@@ -77,6 +78,7 @@
                 <input
                   :type="showPassword ? 'text' : 'password'"
                   id="password"
+                  style="width: 335px;"
                   v-model="formData.password"
                   placeholder="Enter your password"
                   required
@@ -131,9 +133,9 @@
 
           <div class="signup-link">
             <p>Don't have an account? 
-              <a href="#" @click.prevent="switchToSignup" class="signup-link-btn">
+              <router-link to="/signup" class="signup-link-btn">
                 Sign up for free
-              </a>
+              </router-link>
             </p>
           </div>
         </div>
@@ -143,87 +145,58 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import AuthService from '../../stores/Auth';
 
-// Emits
-const emit = defineEmits(['switch-to-signup', 'login'])
-
-// Reactive data
+const router = useRouter();
 const formData = ref({
   email: '',
   password: '',
-  rememberMe: false
-})
+  rememberMe: false,
+});
+const errors = ref({});
+const isLoading = ref(false);
+const showPassword = ref(false);
 
-const errors = ref({})
-const isLoading = ref(false)
-const showPassword = ref(false)
-
-// Methods
 const validateForm = () => {
-  errors.value = {}
+  errors.value = {};
   
   if (!formData.value.email) {
-    errors.value.email = 'Email is required'
+    errors.value.email = 'Email is required';
   } else if (!/\S+@\S+\.\S+/.test(formData.value.email)) {
-    errors.value.email = 'Please enter a valid email'
+    errors.value.email = 'Please enter a valid email';
   }
   
   if (!formData.value.password) {
-    errors.value.password = 'Password is required'
+    errors.value.password = 'Password is required';
   } else if (formData.value.password.length < 6) {
-    errors.value.password = 'Password must be at least 6 characters'
+    errors.value.password = 'Password must be at least 6 characters';
   }
   
-  return Object.keys(errors.value).length === 0
-}
+  return Object.keys(errors.value).length === 0;
+};
 
 const handleSignIn = async () => {
-  if (!validateForm()) return
+  if (!validateForm()) return;
   
-  isLoading.value = true
+  isLoading.value = true;
   
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Mock successful login
-    const userData = {
-      id: 1,
-      name: 'John Doe',
-      email: formData.value.email
-    }
-    
-    const token = 'mock-jwt-token-' + Date.now()
-    
-    // Emit login event
-    emit('login', userData, token)
-    
-    alert('Sign in successful!')
+    await AuthService.login(formData.value);
+    router.push('/');
   } catch (error) {
-    errors.value.general = 'Sign in failed. Please try again.'
+    errors.value.general = error.message || 'Sign in failed. Please try again.';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
-const switchToSignup = () => {
-  emit('switch-to-signup')
-}
-
-// Lifecycle
-onMounted(() => {
-  // Load Bootstrap Icons if not already loaded
-  if (!document.querySelector('link[href*="bootstrap-icons"]')) {
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css'
-    document.head.appendChild(link)
-  }
-})
+// Note: Bootstrap Icons are loaded in App.vue or main.js to avoid duplication
 </script>
 
 <style scoped>
+/* Retain your original styles unchanged */
 .signin-page {
   min-height: 100vh;
   width: 100vw;
@@ -247,7 +220,7 @@ onMounted(() => {
 
 /* Left Side - Branding */
 .signin-left {
-  background: linear-gradient(135deg, #00D664 0%, #00C956 50%, #00B84A 100%);
+  background: linear-gradient(135deg, #00D664 0%, #0c7038 50%, #00B84A 100%);
   padding: 4rem;
   display: flex;
   flex-direction: column;
