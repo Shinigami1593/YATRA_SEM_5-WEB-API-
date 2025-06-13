@@ -59,7 +59,8 @@
             <p>Join thousands of users who trust Yatra</p>
           </div>
 
-          <form @submit.prevent="handleSignUp" class="signup-form">
+          <form @submit.prevent="handleSignup" class="signup-form">
+            <div v-if="errors.general" class="error-message general-error">{{ errors.general }}</div>
             <div class="name-group">
               <div class="form-group">
                 <label for="firstName">
@@ -69,7 +70,6 @@
                 <input
                   type="text"
                   id="firstName"
-                  style="width: auto;"
                   v-model="formData.firstName"
                   placeholder="Enter first name"
                   required
@@ -86,7 +86,6 @@
                 <input
                   type="text"
                   id="lastName"
-                  style="width: auto;"
                   v-model="formData.lastName"
                   placeholder="Enter last name"
                   required
@@ -104,7 +103,6 @@
               <input
                 type="email"
                 id="email"
-                style="width: 418px;"
                 v-model="formData.email"
                 placeholder="Enter your email"
                 required
@@ -122,7 +120,6 @@
                 <input
                   :type="showPassword ? 'text' : 'password'"
                   id="password"
-                  style="width: 384px;"
                   v-model="formData.password"
                   placeholder="Create a strong password"
                   required
@@ -153,7 +150,6 @@
               <input
                 type="password"
                 id="confirmPassword"
-                style="width: 418px;"
                 v-model="formData.confirmPassword"
                 placeholder="Confirm your password"
                 required
@@ -211,97 +207,264 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, defineEmits, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import AuthService from '../../stores/Auth';
+import { useAuthStore } from '@/stores/Auth';
+import apiClient from '@/services/axios';
+import { RouterLink } from 'vue-router';
+
+// Define custom events
+const emit = defineEmits(['signup-success']);
+
+// Reactive state
+const formData = ref({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+});
+
+const errors = ref({});
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
+const agreeToTerms = ref(false);
+const subscribeNewsletter = ref(false);
+const isLoading = ref(false);
+const signupError = ref('');
+const signupSuccess = ref('');
 
 const router = useRouter();
-const formData = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-  agreeToTerms: false,
-});
-const errors = ref({});
-const isLoading = ref(false);
-const showPassword = ref(false);
+const authStore = useAuthStore();
 
+// Computed properties
 const passwordStrength = computed(() => {
-  const password = formData.value.password;
-  if (!password) return { width: '0%', class: '', text: '' };
-  
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-  
-  if (score < 2) return { width: '20%', class: 'weak', text: 'Weak' };
-  if (score < 3) return { width: '40%', class: 'fair', text: 'Fair' };
-  if (score < 4) return { width: '60%', class: 'good', text: 'Good' };
-  if (score < 5) return { width: '80%', class: 'strong', text: 'Strong' };
-  return { width: '100%', class: 'very-strong', text: 'Very Strong' };
+    const password = formData.value.password;
+    if (!password) return 0;
+
+    let strength = 0;
+
+    // Length check
+    if (password.length >= 8) strength += 1;
+    if (password.length >= 12) strength += 1;
+
+    // Character variety checks
+    if (/[a-z]/.test(password)) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
+
+    return Math.min(strength, 5);
 });
 
+const passwordStrengthClass = computed(() => {
+    const strength = passwordStrength.value;
+    if (strength <= 1) return 'weak';
+    if (strength <= 3) return 'medium';
+    return 'strong';
+});
+
+const passwordStrengthWidth = computed(() => {
+    return `${(passwordStrength.value / 5) * 100}%`;
+});
+
+const passwordStrengthText = computed(() => {
+    const strength = passwordStrength.value;
+    if (!formData.value.password) return '';
+    if (strength <= 1) return 'Weak';
+    if (strength <= 3) return 'Medium';
+    return 'Strong';
+});
+
+// Methods
 const validateForm = () => {
-  errors.value = {};
-  
-  if (!formData.value.firstName.trim()) {
-    errors.value.firstName = 'First name is required';
-  }
-  
-  if (!formData.value.lastName.trim()) {
-    errors.value.lastName = 'Last name is required';
-  }
-  
-  if (!formData.value.email) {
-    errors.value.email = 'Email is required';
-  } else if (!/\S+@\S+\.\S+/.test(formData.value.email)) {
-    errors.value.email = 'Please enter a valid email';
-  }
-  
-  if (!formData.value.password) {
-    errors.value.password = 'Password is required';
-  } else if (formData.value.password.length < 8) {
-    errors.value.password = 'Password must be at least 8 characters';
-  }
-  
-  if (!formData.value.confirmPassword) {
-    errors.value.confirmPassword = 'Please confirm your password';
-  } else if (formData.value.password !== formData.value.confirmPassword) {
-    errors.value.confirmPassword = 'Passwords do not match';
-  }
-  
-  if (!formData.value.agreeToTerms) {
-    errors.value.terms = 'You must agree to the terms and conditions';
-  }
-  
-  return Object.keys(errors.value).length === 0;
+    errors.value = {};
+
+    // First name validation
+    if (!formData.value.firstName.trim()) {
+        errors.value.firstName = 'First name is required';
+    } else if (formData.value.firstName.trim().length < 2) {
+        errors.value.firstName = 'First name must be at least 2 characters';
+    }
+
+    // Last name validation
+    if (!formData.value.lastName.trim()) {
+        errors.value.lastName = 'Last name is required';
+    } else if (formData.value.lastName.trim().length < 2) {
+        errors.value.lastName = 'Last name must be at least 2 characters';
+    }
+
+    // Email validation
+    if (!formData.value.email) {
+        errors.value.email = 'Email is required';
+    } else if (!isValidEmail(formData.value.email)) {
+        errors.value.email = 'Please enter a valid email address';
+    }
+
+
+    // Password validation
+    if (!formData.value.password) {
+        errors.value.password = 'Password is required';
+    } else if (formData.value.password.length < 8) {
+        errors.value.password = 'Password must be at least 8 characters';
+    } else if (passwordStrength.value < 3) {
+        errors.value.password = 'Password is too weak. Use a mix of letters, numbers, and symbols';
+    }
+
+    // Confirm password validation
+    if (!formData.value.confirmPassword) {
+        errors.value.confirmPassword = 'Please confirm your password';
+    } else if (formData.value.password !== formData.value.confirmPassword) {
+        errors.value.confirmPassword = 'Passwords do not match';
+    }
+
+    // Terms agreement validation
+    if (!agreeToTerms.value) {
+        errors.value.terms = 'You must agree to the Terms of Service and Privacy Policy';
+    }
+
+    return Object.keys(errors.value).length === 0;
 };
 
-const handleSignUp = async () => {
-  if (!validateForm()) return;
-  
-  isLoading.value = true;
-  
-  try {
-    await AuthService.register(formData.value);
-    router.push('/login');
-  } catch (error) {
-    errors.value.general = error.message || 'Registration failed. Please try again.';
-  } finally {
-    isLoading.value = false;
-  }
+const isValidEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
 };
 
-// Note: Bootstrap Icons are loaded in App.vue or main.js to avoid duplication
+const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value;
+};
+
+const toggleConfirmPasswordVisibility = () => {
+    showConfirmPassword.value = !showConfirmPassword.value;
+};
+
+const handleSignup = async () => {
+    signupError.value = '';
+    signupSuccess.value = '';
+
+    if (!validateForm()) {
+        return;
+    }
+
+    isLoading.value = true;
+
+    try {
+        const response = await registerUser({
+            name: formData.value.firstName + formData.value.lastName,
+            email: formData.value.email,
+            password: formData.value.password,
+        });
+
+        console.log('Signup response:', {
+            status: response.status,
+            data: response.data,
+        });
+
+        // Verify response structure
+        if (!response.data || !response.data.token || !response.data.user) {
+            throw new Error('Invalid response structure from server');
+        }
+
+        // Update Pinia store with auth data
+        authStore.setAuthData({
+            token: response.data.token,
+            user: response.data.user,
+            rememberMe: true,
+        });
+
+        // Emit signup success event
+        emit('signup-success', {
+            email: formData.value.email,
+            firstName: formData.value.firstName,
+            lastName: formData.value.lastName,
+        });
+
+        // Set success message
+        signupSuccess.value = 'Account created successfully! Redirecting to dashboard...';
+
+        // Reset form and redirect after a brief delay
+        setTimeout(() => {
+            resetForm();
+            router.push('/login');
+        }, 2000);
+    } catch (error) {
+        console.error('Signup error:', {
+            message: error.message,
+            response: error.response
+                ? {
+                    status: error.response.status,
+                    data: error.response.data,
+                }
+                : null,
+        });
+
+        // Handle backend errors
+        if (error.response && error.response.data) {
+            const { message, errors } = error.response.data;
+            if (message === 'User already exists') {
+                signupError.value = 'An account with this email already exists.';
+            } else if (errors && Array.isArray(errors)) {
+                errors.forEach((err) => {
+                    errors.value[err.param] = err.msg;
+                });
+                signupError.value = 'Please correct the errors in the form.';
+            } else if (message) {
+                signupError.value = message;
+            } else {
+                signupError.value = 'Registration failed. Please try again later.';
+            }
+        } else {
+            signupError.value = error.message || 'Network error. Please check your connection and try again.';
+        }
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const registerUser = async (userData) => {
+    const response = await apiClient.post('/register', userData);
+    console.log('Raw Axios response:', response);
+    return {
+        status: response.status,
+        data: response.data,
+    };
+};
+
+const resetForm = () => {
+    formData.value = {
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+    };
+    agreeToTerms.value = false;
+    subscribeNewsletter.value = false;
+    errors.value = {};
+    signupError.value = '';
+    signupSuccess.value = '';
+};
+
+// Check authentication status on mount
+onMounted(() => {
+    if (authStore.isAuthenticated) {
+        const user = authStore.getUser;
+        if (user && user.role === 'admin') {
+            router.push('/home'); // Admin already logged in, redirect to dashboard
+        } else {
+            authStore.logout(); // Non-admin (e.g., driver), log out and redirect to login
+            router.push('/login');
+        }
+    }
+});
+
+// Lifecycle hook equivalent
+resetForm();
 </script>
 
 <style scoped>
-/* Retain your original styles unchanged */
+/* Same styles as your previous SignUp.vue */
 .signup-page {
   min-height: 100vh;
   width: 100vw;
@@ -323,7 +486,6 @@ const handleSignUp = async () => {
   background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
 }
 
-/* Left Side - Branding */
 .signup-left {
   background: linear-gradient(135deg, #00D664 0%, #0c7038 50%, #00B84A 100%);
   padding: 4rem;
@@ -436,7 +598,6 @@ const handleSignUp = async () => {
   opacity: 0.9;
 }
 
-/* Right Side - Form */
 .signup-right {
   background: #1a1a1a;
   display: flex;
@@ -744,7 +905,6 @@ const handleSignUp = async () => {
   color: #00C956;
 }
 
-/* Responsive Design */
 @media (max-width: 1024px) {
   .signup-container {
     grid-template-columns: 1fr;

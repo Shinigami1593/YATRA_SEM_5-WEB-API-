@@ -26,12 +26,12 @@ const router = createRouter({
   routes
 });
 
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !AuthService.isAuthenticated()) {
-    next('/login');
-  } else {
-    next();
-  }
-});
+// router.beforeEach((to, from, next) => {
+//   if (to.meta.requiresAuth && !AuthService.isAuthenticated()) {
+//     next('/login');
+//   } else {
+//     next();
+//   }
+// });
 
 export default router;

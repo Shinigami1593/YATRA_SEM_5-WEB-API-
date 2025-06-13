@@ -20,7 +20,7 @@ app.use(cors({ origin: 'http://localhost:5174' })); // Allow frontend origin
 
 // Routes
 const userRoute = require('./routes/userRoutes'); // Match your route file name
-app.use('/api/v1/auht/users', userRoute); // Match frontend's axios baseURL
+app.use('/api/v1/auth/users', userRoute); // Match frontend's axios baseURL
 
 // Health check
 app.get('/', (req, res) => res.send('API is running'));
