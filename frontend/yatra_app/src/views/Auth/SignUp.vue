@@ -70,6 +70,7 @@
                 <input
                   type="text"
                   id="firstName"
+                  style="width: auto;"
                   v-model="formData.firstName"
                   placeholder="Enter first name"
                   required
@@ -86,6 +87,7 @@
                 <input
                   type="text"
                   id="lastName"
+                  style="width: auto;"
                   v-model="formData.lastName"
                   placeholder="Enter last name"
                   required
@@ -103,6 +105,7 @@
               <input
                 type="email"
                 id="email"
+                style="width: 420px;"
                 v-model="formData.email"
                 placeholder="Enter your email"
                 required
@@ -120,6 +123,7 @@
                 <input
                   :type="showPassword ? 'text' : 'password'"
                   id="password"
+                  style="width: 388px;"
                   v-model="formData.password"
                   placeholder="Create a strong password"
                   required
@@ -130,7 +134,7 @@
                   class="password-toggle"
                   @click="showPassword = !showPassword"
                 >
-                  <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"> </i>
                 </button>
               </div>
               <div class="password-strength">
@@ -150,6 +154,7 @@
               <input
                 type="password"
                 id="confirmPassword"
+                style="width: 420px;"
                 v-model="formData.confirmPassword"
                 placeholder="Confirm your password"
                 required
@@ -464,7 +469,6 @@ resetForm();
 </script>
 
 <style scoped>
-/* Same styles as your previous SignUp.vue */
 .signup-page {
   min-height: 100vh;
   width: 100vw;
