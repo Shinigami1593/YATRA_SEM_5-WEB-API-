@@ -1,17 +1,23 @@
 <template>
-    <nav class="app-nav" v-if="!isAuthPage">
-      <div class="nav-content">
-        <div class="logo">
-          <h1>Yatra</h1>
-        </div>
-        <div class="nav-links">
-          <a href="/" @click="setCurrentPage('home')" :class="{ active: currentPage === 'home' }">Home</a>
-          <a href="/about" @click="setCurrentPage('about')" :class="{ active: currentPage === 'route' }">Route</a>
-          <a href="/contact" @click="setCurrentPage('schedule')" :class="{ active: currentPage === 'schedule' }">Schedule</a>
-          <a href="/contact" @click="setCurrentPage('contact')" :class="{ active: currentPage === 'stops' }">Stops</a>
-        </div>
-        <div class="nav-actions">
-          <a href="/login" @click="setCurrentPage('signin')" class="login-btn">
+  <nav class="app-nav" v-if="!isAuthPage || !isAdminPage">
+    <div class="nav-content">
+      <div class="logo">
+        <h1>Yatra</h1>
+      </div>
+      <div class="nav-links">
+        <a href="/home" @click="setCurrentPage('home')" :class="{ active: currentPage === 'home' }">Home</a>
+        <a href="/route" @click="setCurrentPage('about')" :class="{ active: currentPage === 'route' }">Route</a>
+        <a href="/schedule" @click="setCurrentPage('schedule')" :class="{ active: currentPage === 'schedule' }">Schedule</a>
+        <a href="/stops" @click="setCurrentPage('stops')" :class="{ active: currentPage === 'stops' }">Stops</a>
+        <a href="#" @click.prevent="logout" class="profile-btn">
+          <i class="bi bi-person-fill"></i>
+        </a>
+      </div>
+      <!-- <div class="nav-actions">
+        <template>
+        </template>
+        <!-- <template v-else>
+          <a href="/" @click="setCurrentPage('signin')" class="login-btn">
             <i class="bi bi-person-fill"></i>
             Login
           </a>
@@ -19,13 +25,33 @@
             <i class="bi bi-person-plus-fill"></i>
             Sign Up
           </a>
-        </div>
-      </div>
-    </nav>
+        </template> -->
+      <!-- </div> --> 
+    </div>
+  </nav>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/Auth';
 
+const router = useRouter();
+const authStore = useAuthStore();
+const currentPage = ref('home');
+const isAuthPage = computed(() => ['/', '/register'].includes(router.currentRoute.value.path));
+const isAdminPage = computed(() => router.currentRoute.value.path.startsWith('/admin'));
+
+const setCurrentPage = (page) => {
+  currentPage.value = page;
+};
+
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+
+const logout = () => {
+  authStore.logout();
+  router.push('/');
+};
 </script>
 
 <style scoped>
@@ -93,7 +119,7 @@
   align-items: center;
 }
 
-.login-btn, .signup-btn {
+.login-btn, .signup-btn, .profile-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -102,6 +128,7 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+  color: white;
   transition: all 0.3s ease;
 }
 
@@ -116,6 +143,13 @@
   color: #00D664;
 }
 
+.profile-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 1.5rem; /* Adjust size for icon */
+}
+
 .login-btn:hover {
   background-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-1px);
@@ -123,6 +157,11 @@
 
 .signup-btn:hover {
   background-color: #f0f0f0;
+  transform: translateY(-1px);
+}
+
+.profile-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-1px);
 }
 

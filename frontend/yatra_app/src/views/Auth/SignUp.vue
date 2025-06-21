@@ -10,7 +10,7 @@
           <h1 class="brand-title">Join Yatra</h1>
           <p class="brand-subtitle">Start your journey with us today</p>
         </div>
-        
+
         <div class="benefits-section">
           <h3>Why choose Yatra?</h3>
           <div class="benefit-item">
@@ -34,7 +34,7 @@
             <span>Community-driven updates</span>
           </div>
         </div>
-        
+
         <div class="stats-section">
           <div class="stat">
             <h4>10K+</h4>
@@ -61,38 +61,26 @@
 
           <form @submit.prevent="handleSignup" class="signup-form">
             <div v-if="errors.general" class="error-message general-error">{{ errors.general }}</div>
+            <div v-if="signupError" class="error-message general-error">{{ signupError }}</div>
+            <div v-if="signupSuccess" class="success-message">{{ signupSuccess }}</div>
             <div class="name-group">
               <div class="form-group">
                 <label for="firstName">
                   <i class="bi bi-person"></i>
                   First Name
                 </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  style="width: auto;"
-                  v-model="formData.firstName"
-                  placeholder="Enter first name"
-                  required
-                  :class="{ 'error': errors.firstName }"
-                />
+                <input type="text" id="firstName" v-model="formData.firstName" placeholder="Enter first name" required
+                  :class="{ 'error': errors.firstName } " style="width: auto;" />
                 <span v-if="errors.firstName" class="error-message">{{ errors.firstName }}</span>
               </div>
-              
+
               <div class="form-group">
                 <label for="lastName">
                   <i class="bi bi-person"></i>
                   Last Name
                 </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  style="width: auto;"
-                  v-model="formData.lastName"
-                  placeholder="Enter last name"
-                  required
-                  :class="{ 'error': errors.lastName }"
-                />
+                <input type="text" id="lastName" v-model="formData.lastName" placeholder="Enter last name" required
+                  :class="{ 'error': errors.lastName }" style="width: auto;"/>
                 <span v-if="errors.lastName" class="error-message">{{ errors.lastName }}</span>
               </div>
             </div>
@@ -102,44 +90,27 @@
                 <i class="bi bi-envelope"></i>
                 Email Address
               </label>
-              <input
-                type="email"
-                id="email"
-                style="width: 420px;"
-                v-model="formData.email"
-                placeholder="Enter your email"
-                required
-                :class="{ 'error': errors.email }"
-              />
+              <input type="email" id="email" v-model="formData.email" placeholder="Enter your email" required
+                :class="{ 'error': errors.email }" style="width: auto;"/>
               <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
             </div>
 
             <div class="form-group">
-              <label for="password">
+              <label for="password" >
                 <i class="bi bi-lock"></i>
                 Password
               </label>
               <div class="password-input">
-                <input
-                  :type="showPassword ? 'text' : 'password'"
-                  id="password"
-                  style="width: 388px;"
-                  v-model="formData.password"
-                  placeholder="Create a strong password"
-                  required
-                  :class="{ 'error': errors.password }"
-                />
-                <button
-                  type="button"
-                  class="password-toggle"
-                  @click="showPassword = !showPassword"
-                >
-                  <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"> </i>
+                <input :type="showPassword ? 'text' : 'password'" id="password" v-model="formData.password"
+                  placeholder="Create a strong password" required :class="{ 'error': errors.password }" style="width: 385px;"/>
+                <button type="button" class="password-toggle" @click="showPassword = !showPassword">
+                  <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
                 </button>
               </div>
               <div class="password-strength">
                 <div class="strength-bar">
-                  <div class="strength-fill" :class="passwordStrength.class" :style="{ width: passwordStrength.width }"></div>
+                  <div class="strength-fill" :class="passwordStrength.class" :style="{ width: passwordStrength.width }">
+                  </div>
                 </div>
                 <span class="strength-text" :class="passwordStrength.class">{{ passwordStrength.text }}</span>
               </div>
@@ -151,15 +122,8 @@
                 <i class="bi bi-lock-fill"></i>
                 Confirm Password
               </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                style="width: 420px;"
-                v-model="formData.confirmPassword"
-                placeholder="Confirm your password"
-                required
-                :class="{ 'error': errors.confirmPassword }"
-              />
+              <input type="password" id="confirmPassword" v-model="formData.confirmPassword"
+                placeholder="Confirm your password" required :class="{ 'error': errors.confirmPassword }" style="width: 420px;"/>
               <span v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</span>
             </div>
 
@@ -167,8 +131,10 @@
               <label class="checkbox-container">
                 <input type="checkbox" v-model="formData.agreeToTerms" required>
                 <span class="checkmark"></span>
-                I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a>
+                I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#"
+                  class="terms-link">Privacy Policy</a>
               </label>
+              <span v-if="errors.terms" class="error-message">{{ errors.terms }}</span>
             </div>
 
             <button type="submit" class="signup-btn" :disabled="isLoading || !formData.agreeToTerms">
@@ -199,8 +165,8 @@
           </form>
 
           <div class="signin-link">
-            <p>Already have an account? 
-              <router-link to="/login" class="signin-link-btn">
+            <p>Already have an account?
+              <router-link to="/" class="signin-link-btn">
                 Sign in here
               </router-link>
             </p>
@@ -223,17 +189,17 @@ const emit = defineEmits(['signup-success']);
 
 // Reactive state
 const formData = ref({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  agreeToTerms: false,
 });
 
 const errors = ref({});
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
-const agreeToTerms = ref(false);
 const subscribeNewsletter = ref(false);
 const isLoading = ref(false);
 const signupError = ref('');
@@ -244,231 +210,241 @@ const authStore = useAuthStore();
 
 // Computed properties
 const passwordStrength = computed(() => {
-    const password = formData.value.password;
-    if (!password) return 0;
+  const password = formData.value.password;
+  if (!password) return { class: 'weak', width: '0%', text: '' };
 
-    let strength = 0;
+  let strength = 0;
 
-    // Length check
-    if (password.length >= 8) strength += 1;
-    if (password.length >= 12) strength += 1;
+  // Length check
+  if (password.length >= 8) strength += 1;
+  if (password.length >= 12) strength += 1;
 
-    // Character variety checks
-    if (/[a-z]/.test(password)) strength += 1;
-    if (/[A-Z]/.test(password)) strength += 1;
-    if (/[0-9]/.test(password)) strength += 1;
-    if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
+  // Character variety checks
+  if (/[a-z]/.test(password)) strength += 1;
+  if (/[A-Z]/.test(password)) strength += 1;
+  if (/[0-9]/.test(password)) strength += 1;
+  if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
 
-    return Math.min(strength, 5);
-});
+  console.log('Password strength:', strength);
 
-const passwordStrengthClass = computed(() => {
-    const strength = passwordStrength.value;
-    if (strength <= 1) return 'weak';
-    if (strength <= 3) return 'medium';
-    return 'strong';
-});
+  const strengthPercent = Math.min(strength, 5) / 5 * 100;
+  let strengthClass = 'weak';
+  let strengthText = 'Weak';
 
-const passwordStrengthWidth = computed(() => {
-    return `${(passwordStrength.value / 5) * 100}%`;
-});
+  if (strength > 3) {
+    strengthClass = 'strong';
+    strengthText = 'Strong';
+  } else if (strength > 1) {
+    strengthClass = 'medium';
+    strengthText = 'Medium';
+  }
 
-const passwordStrengthText = computed(() => {
-    const strength = passwordStrength.value;
-    if (!formData.value.password) return '';
-    if (strength <= 1) return 'Weak';
-    if (strength <= 3) return 'Medium';
-    return 'Strong';
+  return {
+    class: strengthClass,
+    width: `${strengthPercent}%`,
+    text: strengthText
+  };
 });
 
 // Methods
 const validateForm = () => {
-    errors.value = {};
+  errors.value = {};
 
-    // First name validation
-    if (!formData.value.firstName.trim()) {
-        errors.value.firstName = 'First name is required';
-    } else if (formData.value.firstName.trim().length < 2) {
-        errors.value.firstName = 'First name must be at least 2 characters';
-    }
+  // First name validation
+  if (!formData.value.firstName.trim()) {
+    errors.value.firstName = 'First name is required';
+  } else if (formData.value.firstName.trim().length < 2) {
+    errors.value.firstName = 'First name must be at least 2 characters';
+  }
 
-    // Last name validation
-    if (!formData.value.lastName.trim()) {
-        errors.value.lastName = 'Last name is required';
-    } else if (formData.value.lastName.trim().length < 2) {
-        errors.value.lastName = 'Last name must be at least 2 characters';
-    }
+  // Last name validation
+  if (!formData.value.lastName.trim()) {
+    errors.value.lastName = 'Last name is required';
+  } else if (formData.value.lastName.trim().length < 2) {
+    errors.value.lastName = 'Last name must be at least 2 characters';
+  }
 
-    // Email validation
-    if (!formData.value.email) {
-        errors.value.email = 'Email is required';
-    } else if (!isValidEmail(formData.value.email)) {
-        errors.value.email = 'Please enter a valid email address';
-    }
+  // Email validation
+  if (!formData.value.email) {
+    errors.value.email = 'Email is required';
+  } else if (!isValidEmail(formData.value.email)) {
+    errors.value.email = 'Please enter a valid email address';
+  }
 
+  // Password validation
+  if (!formData.value.password) {
+    errors.value.password = 'Password is required';
+  } else if (formData.value.password.length < 8) {
+    errors.value.password = 'Password must be at least 8 characters';
+  } else if (passwordStrength.value.class === 'weak') {
+    errors.value.password = 'Password is too weak. Use a mix of letters, numbers, and symbols';
+  }
 
-    // Password validation
-    if (!formData.value.password) {
-        errors.value.password = 'Password is required';
-    } else if (formData.value.password.length < 8) {
-        errors.value.password = 'Password must be at least 8 characters';
-    } else if (passwordStrength.value < 3) {
-        errors.value.password = 'Password is too weak. Use a mix of letters, numbers, and symbols';
-    }
+  // Confirm password validation
+  if (!formData.value.confirmPassword) {
+    errors.value.confirmPassword = 'Please confirm your password';
+  } else if (formData.value.password !== formData.value.confirmPassword) {
+    errors.value.confirmPassword = 'Passwords do not match';
+  }
 
-    // Confirm password validation
-    if (!formData.value.confirmPassword) {
-        errors.value.confirmPassword = 'Please confirm your password';
-    } else if (formData.value.password !== formData.value.confirmPassword) {
-        errors.value.confirmPassword = 'Passwords do not match';
-    }
+  // Terms agreement validation
+  if (!formData.value.agreeToTerms) {
+    errors.value.terms = 'You must agree to the Terms of Service and Privacy Policy';
+  }
 
-    // Terms agreement validation
-    if (!agreeToTerms.value) {
-        errors.value.terms = 'You must agree to the Terms of Service and Privacy Policy';
-    }
-
-    return Object.keys(errors.value).length === 0;
+  console.log('Validation errors:', errors.value);
+  return Object.keys(errors.value).length === 0;
 };
 
 const isValidEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  console.log('Email valid:', regex.test(email));
+  return regex.test(email);
 };
 
 const togglePasswordVisibility = () => {
-    showPassword.value = !showPassword.value;
+  showPassword.value = !showPassword.value;
 };
 
 const toggleConfirmPasswordVisibility = () => {
-    showConfirmPassword.value = !showConfirmPassword.value;
+  showConfirmPassword.value = !showConfirmPassword.value;
 };
 
 const handleSignup = async () => {
-    signupError.value = '';
-    signupSuccess.value = '';
+  console.log('handleSignup called with formData:', formData.value);
+  signupError.value = '';
+  signupSuccess.value = '';
 
-    if (!validateForm()) {
-        return;
+  if (!validateForm()) {
+    console.log('Validation failed, exiting');
+    return;
+  }
+
+  isLoading.value = true;
+
+  try {
+    console.log('Calling registerUser');
+    const response = await registerUser({
+      name: `${formData.value.firstName} ${formData.value.lastName}`, // Combine firstName and lastName
+      email: formData.value.email,
+      password: formData.value.password,
+      firstName: formData.value.firstName,
+      lastName: formData.value.lastName, // Include for full user data
+    });
+
+    console.log('Signup response:', {
+      status: response.status,
+      data: response.data,
+    });
+
+    // Verify response structure
+    if (!response.data || !response.data.token || !response.data.user) {
+      throw new Error('Invalid response structure from server');
     }
 
-    isLoading.value = true;
+    // Update Pinia store with auth data
+    authStore.register({
+      token: response.data.token,
+      user: response.data.user,
+      rememberMe: true,
+    });
 
-    try {
-        const response = await registerUser({
-            name: formData.value.firstName + formData.value.lastName,
-            email: formData.value.email,
-            password: formData.value.password,
+    // Emit signup success event
+    emit('signup-success', {
+      email: formData.value.email,
+      firstName: formData.value.firstName,
+      lastName: formData.value.lastName,
+    });
+
+    // Set success message
+    signupSuccess.value = 'Account created successfully! Redirecting to dashboard...';
+
+    // Reset form and redirect after a brief delay
+    setTimeout(() => {
+      console.log('Redirecting to /');
+      resetForm();
+      router.push('/');
+    }, 2000);
+  } catch (error) {
+    console.error('Signup error:', {
+      message: error.message,
+      response: error.response
+        ? {
+            status: error.response.status,
+            data: error.response.data,
+          }
+        : null,
+    });
+
+    // Handle backend errors
+    if (error.response && error.response.data) {
+      const { message, errors } = error.response.data;
+      if (message === 'Email in use') { // Match backend message
+        signupError.value = 'An account with this email already exists.';
+      } else if (errors && Array.isArray(errors)) {
+        errors.forEach((err) => {
+          errors.value[err.param] = err.msg;
         });
-
-        console.log('Signup response:', {
-            status: response.status,
-            data: response.data,
-        });
-
-        // Verify response structure
-        if (!response.data || !response.data.token || !response.data.user) {
-            throw new Error('Invalid response structure from server');
-        }
-
-        // Update Pinia store with auth data
-        authStore.setAuthData({
-            token: response.data.token,
-            user: response.data.user,
-            rememberMe: true,
-        });
-
-        // Emit signup success event
-        emit('signup-success', {
-            email: formData.value.email,
-            firstName: formData.value.firstName,
-            lastName: formData.value.lastName,
-        });
-
-        // Set success message
-        signupSuccess.value = 'Account created successfully! Redirecting to dashboard...';
-
-        // Reset form and redirect after a brief delay
-        setTimeout(() => {
-            resetForm();
-            router.push('/login');
-        }, 2000);
-    } catch (error) {
-        console.error('Signup error:', {
-            message: error.message,
-            response: error.response
-                ? {
-                    status: error.response.status,
-                    data: error.response.data,
-                }
-                : null,
-        });
-
-        // Handle backend errors
-        if (error.response && error.response.data) {
-            const { message, errors } = error.response.data;
-            if (message === 'User already exists') {
-                signupError.value = 'An account with this email already exists.';
-            } else if (errors && Array.isArray(errors)) {
-                errors.forEach((err) => {
-                    errors.value[err.param] = err.msg;
-                });
-                signupError.value = 'Please correct the errors in the form.';
-            } else if (message) {
-                signupError.value = message;
-            } else {
-                signupError.value = 'Registration failed. Please try again later.';
-            }
-        } else {
-            signupError.value = error.message || 'Network error. Please check your connection and try again.';
-        }
-    } finally {
-        isLoading.value = false;
+        signupError.value = 'Please correct the errors in the form.';
+      } else if (message) {
+        signupError.value = message;
+      } else {
+        signupError.value = 'Registration failed. Please try again later.';
+      }
+    } else {
+      signupError.value = error.message || 'Network error. Please check your connection and try again.';
     }
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const registerUser = async (userData) => {
-    const response = await apiClient.post('/register', userData);
-    console.log('Raw Axios response:', response);
-    return {
-        status: response.status,
-        data: response.data,
-    };
+  console.log('Attempting API call with:', userData);
+  const response = await apiClient.post('/signup', userData); // Update to match backend
+  console.log('Raw Axios response:', response);
+  return {
+    status: response.status,
+    data: response.data,
+  };
 };
 
 const resetForm = () => {
-    formData.value = {
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-    };
-    agreeToTerms.value = false;
-    subscribeNewsletter.value = false;
-    errors.value = {};
-    signupError.value = '';
-    signupSuccess.value = '';
+  formData.value = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    agreeToTerms: false,
+  };
+  subscribeNewsletter.value = false;
+  errors.value = {};
+  signupError.value = '';
+  signupSuccess.value = '';
+  isLoading.value = false;
 };
 
 // Check authentication status on mount
 onMounted(() => {
-    if (authStore.isAuthenticated) {
-        const user = authStore.getUser;
-        if (user && user.role === 'admin') {
-            router.push('/home'); // Admin already logged in, redirect to dashboard
-        } else {
-            authStore.logout(); // Non-admin (e.g., driver), log out and redirect to login
-            router.push('/login');
-        }
+  if (authStore.isAuthenticated) {
+    const user = authStore.getUser;
+    if (user && (user.role === 'moderator' || user.role === 'superadmin')) {
+      router.push('/home'); // Admin already logged in, redirect to dashboard
+    } else {
+      authStore.logout(); // Non-admin (e.g., driver), log out and redirect to login
+      router.push('/');
     }
+  }
 });
 
 // Lifecycle hook equivalent
 resetForm();
 </script>
 
+
 <style scoped>
+/* Same styles as your previous SignUp.vue */
 .signup-page {
   min-height: 100vh;
   width: 100vw;
@@ -738,11 +714,25 @@ resetForm();
   border-radius: 2px;
 }
 
-.strength-fill.weak { background: #ef4444; }
-.strength-fill.fair { background: #f59e0b; }
-.strength-fill.good { background: #3b82f6; }
-.strength-fill.strong { background: #10b981; }
-.strength-fill.very-strong { background: #00D664; }
+.strength-fill.weak {
+  background: #ef4444;
+}
+
+.strength-fill.fair {
+  background: #f59e0b;
+}
+
+.strength-fill.good {
+  background: #3b82f6;
+}
+
+.strength-fill.strong {
+  background: #10b981;
+}
+
+.strength-fill.very-strong {
+  background: #00D664;
+}
 
 .strength-text {
   font-size: 0.8rem;
@@ -750,11 +740,25 @@ resetForm();
   min-width: 80px;
 }
 
-.strength-text.weak { color: #ef4444; }
-.strength-text.fair { color: #f59e0b; }
-.strength-text.good { color: #3b82f6; }
-.strength-text.strong { color: #10b981; }
-.strength-text.very-strong { color: #00D664; }
+.strength-text.weak {
+  color: #ef4444;
+}
+
+.strength-text.fair {
+  color: #f59e0b;
+}
+
+.strength-text.good {
+  color: #3b82f6;
+}
+
+.strength-text.strong {
+  color: #10b981;
+}
+
+.strength-text.very-strong {
+  color: #00D664;
+}
 
 .error-message {
   color: #ef4444;
@@ -830,7 +834,9 @@ resetForm();
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .divider {
@@ -915,11 +921,11 @@ resetForm();
     height: auto;
     min-height: 100vh;
   }
-  
+
   .signup-left {
     display: none;
   }
-  
+
   .signup-right {
     padding: 2rem;
   }
@@ -929,27 +935,27 @@ resetForm();
   .signup-page {
     padding: 1rem;
   }
-  
+
   .signup-right {
     padding: 1.5rem;
   }
-  
+
   .form-container {
     max-width: none;
   }
-  
+
   .form-header h2 {
     font-size: 1.75rem;
   }
-  
+
   .name-group {
     grid-template-columns: 1fr;
   }
-  
+
   .social-signup {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-section {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -960,15 +966,15 @@ resetForm();
   .signup-page {
     padding: 0.5rem;
   }
-  
+
   .signup-right {
     padding: 1rem;
   }
-  
+
   .form-header h2 {
     font-size: 1.5rem;
   }
-  
+
   .form-group input {
     padding: 0.75rem;
   }

@@ -8,7 +8,7 @@
         </div>
 
         <form @submit.prevent="handleSignIn" class="signin-form">
-          <div v-if="errors.general" class="error-message general-error">{{ errors.general }}</div>
+          <div v-if="loginError" class="error-message">{{ loginError }}</div>
 
           <div class="form-group">
             <label for="email">
@@ -52,7 +52,6 @@
             </div>
             <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
           </div>
-
           <button type="submit" class="signin-btn" :disabled="isLoading">
             <span v-if="!isLoading">
               <i class="bi bi-box-arrow-in-right"></i>
@@ -92,132 +91,140 @@
   </div>
 </template>
 
-<script>
-import { RouterLink } from 'vue-router';
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/Auth';
-import apiClient from '@/services/axios';
+import adminApiClient from '@/services/axios'; // Admin client
+import userApiClient from '@/services/axios'; // User client
 
-export default {
-    name: 'LoginPage',
-    data() {
-        return {
-            formData: {
-                email: '',
-                password: ''
-            },
-            errors: {},
-            showPassword: false,
-            rememberMe: false,
-            isLoading: false,
-            loginError: ''
-        }
-    },
-    methods: {
-        validateForm() {
-            this.errors = {};
+const formData = ref({
+  email: '',
+  password: '',
+});
+const errors = ref({});
+const showPassword = ref(false);
+const isLoading = ref(false);
+const loginError = ref('');
 
-            // Email validation
-            if (!this.formData.email) {
-                this.errors.email = 'Email is required';
-            } else if (!this.isValidEmail(this.formData.email)) {
-                this.errors.email = 'Please enter a valid email address';
-            }
+const router = useRouter();
+const authStore = useAuthStore();
 
-            // Password validation
-            if (!this.formData.password) {
-                this.errors.password = 'Password is required';
-            } else if (this.formData.password.length < 8) {
-                this.errors.password = 'Password must be at least 8 characters';
-            }
+const validateForm = () => {
+  errors.value = {};
 
-            return Object.keys(this.errors).length === 0;
-        },
+  if (!formData.value.email) {
+    errors.value.email = 'Email is required';
+  } else if (!isValidEmail(formData.value.email)) {
+    errors.value.email = 'Please enter a valid email address';
+  }
 
-        isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        },
+  if (!formData.value.password) {
+    errors.value.password = 'Password is required';
+  } else if (formData.value.password.length < 6) {
+    errors.value.password = 'Password must be at least 6 characters';
+  }
 
-        togglePasswordVisibility() {
-            this.showPassword = !this.showPassword;
-        },
+  return Object.keys(errors.value).length === 0;
+};
 
-        async handleLogin() {
-            this.loginError = '';
+const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
 
-            if (!this.validateForm()) {
-                return;
-            }
+const handleSignIn = async () => {
+  loginError.value = '';
 
-            this.isLoading = true;
+  if (!validateForm()) return;
 
-            try {
-                const response = await this.authenticateUser(this.formData);
+  isLoading.value = true;
 
-                // Check if user has admin role
-                if (response.user.role !== 'admin') {
-                    throw new Error('Only admins can log in.');
-                }
+  try {
+    let response;
 
-                // Update Pinia store with auth data
-                const authStore = useAuthStore();
-                authStore.setAuthData({
-                    token: response.token,
-                    user: response.user,
-                    rememberMe: this.rememberMe
-                });
-
-                // Emit login success event
-                this.$emit('login-success', {
-                    email: this.formData.email,
-                    rememberMe: this.rememberMe,
-                    user: response.user
-                });
-
-                // Redirect to dashboard
-                this.$router.push('/home');
-
-            } catch (error) {
-                // Handle specific errors
-                if (error.message === 'Only admins can log in.') {
-                    this.loginError = 'Only administrators are allowed to log in.';
-                } else if (error.response && error.response.data && error.response.data.message) {
-                    const message = error.response.data.message;
-                    if (message === 'Invalid credentials') {
-                        this.loginError = 'Incorrect email or password. Please try again.';
-                    } else {
-                        this.loginError = message;
-                    }
-                } else {
-                    this.loginError = 'An error occurred. Please try again later.';
-                }
-            } finally {
-                this.isLoading = false;
-            }
-        },
-
-        async authenticateUser(credentials) {
-            const response = await apiClient.post('/login', {
-                email: credentials.email,
-                password: credentials.password
-            });
-            return response.data; // { message, token, user }
-        }
-    },
-
-    mounted() {
-        // Clear any existing errors when component mounts
-        this.errors = {};
-        this.loginError = '';
-
-        // Check if user is authenticated and redirect if logged in
-        const authStore = useAuthStore();
-        if (authStore.isAuthenticated) {
-            this.$router.push('/');
-        }
+    // 1. Try Admin Login First
+    try {
+      console.log("post api in process")
+      response = await adminApiClient.post('/login', {
+        email: formData.value.email,
+        password: formData.value.password,
+      });
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.status === 400 &&
+        error.response.data.message === 'Invalid credentials'
+      ) {
+        // 2. Try User Login
+        response = await userApiClient.post('/login', {
+          email: formData.value.email.toLowerCase(),
+          password: formData.value.password,
+        });
+      } else {
+        throw error; // Some other error occurred
+      }
     }
-}
+
+    const { token, user } = response.data;
+
+    if (!token || !user) {
+      throw new Error('Invalid response from server. Expected token and user.');
+    }
+
+    // Decode token payload to extract role
+    const payload = token.split('.')[1];
+    const decodedPayload = JSON.parse(atob(payload));
+    const role = decodedPayload.role || 'user';
+
+    // Save to store and localStorage
+    authStore.token = token;
+    authStore.user = user;
+    authStore.role = role;
+
+    const storage = localStorage;
+    storage.setItem('authToken', token);
+    storage.setItem('user', JSON.stringify(user));
+    storage.setItem('role', role);
+
+    // Redirect based on role
+    if (role === 'admin' || role === 'superadmin' || role === 'moderator') {
+      await router.push('/admin');
+    } else {
+      await router.push('/home');
+    }
+
+  } catch (error) {
+    console.error('Login Error:', error);
+    if (error.response) {
+      const { status, data } = error.response;
+      if (status === 400) {
+        loginError.value = data.message || 'Invalid credentials.';
+      } else {
+        loginError.value = `Server error (Status: ${status}).`;
+      }
+    } else {
+      loginError.value = error.message || 'Network error.';
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    const role = authStore.getRole();
+    if (role === 'admin' || role === 'superadmin' || role === 'moderator') {
+      router.push('/admin');
+    } else {
+      router.push('/home');
+    }
+  }
+  errors.value = {};
+  loginError.value = '';
+});
 </script>
+
 
 <style scoped>
 .signin-page {
