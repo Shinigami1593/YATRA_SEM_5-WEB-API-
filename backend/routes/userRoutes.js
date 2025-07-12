@@ -1,13 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { signup, login, getProfile, updateProfile, getDashboardData, deleteProfile } = require('../controller/userController');
-const upload = require('../middleware/upload')
-const middleware = require('../middleware/auth'); 
+const routeController = require('../controller/routeController');
+const authController = require('../controller/authController');
+const { authenticateUser, validateSignup, validateLogin } = require('../middleware/auth');
 
-router.post('/signup', middleware.validateSignup, signup); // No file upload
-router.post('/login', middleware.validateLogin, login);
-router.get('/profile', middleware.authenticateUser, getProfile);
-router.put('/profile', middleware.authenticateUser, upload.single('profilePicture'), updateProfile); // File upload only here
-router.get('/dashboard', middleware.authenticateUser, getDashboardData);
-router.delete('/profile', middleware.authenticateUser, deleteProfile); // New route
+router.post('/register', validateSignup, authController.register);
+router.post('/login', validateLogin, authController.userLogin);
+router.get('/profile', authenticateUser, authController.getProfile);
+router.put('/profile', authenticateUser, authController.updateProfile);
+router.delete('/profile', authenticateUser, authController.deleteProfile);
+
+router.get('/routes', authenticateUser, routeController.getRoutes);
+router.get('/routes/nearby', authenticateUser, routeController.getRoutes);
+router.get('/routes/:id', authenticateUser, routeController.getRouteById);
+
 module.exports = router;
+      
