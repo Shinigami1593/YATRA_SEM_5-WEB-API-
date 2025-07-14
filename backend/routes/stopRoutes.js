@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const stopController = require('../controllers/stopController');
+const stopController = require('../controller/stopsController');
 const { authenticateUser, isAdmin } = require('../middleware/auth');
 
 // User-accessible routes (active stops only)
