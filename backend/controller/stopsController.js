@@ -1,4 +1,4 @@
-const Stop = require('../models/Stop');
+const Stop = require('../models/Stops');
 const axios = require('axios');
 
 const ORS_API_KEY = process.env.ORS_API_KEY;
