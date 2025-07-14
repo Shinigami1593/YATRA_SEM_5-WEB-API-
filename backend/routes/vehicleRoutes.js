@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const vehicleController = require('../controllers/vehicleController');
+const vehicleController = require('../controller/vehicleController');
 const { authenticateUser, isAdmin } = require('../middleware/auth');
 
 // Public (user) access — view available vehicles

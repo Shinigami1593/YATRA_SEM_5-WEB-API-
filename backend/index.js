@@ -32,11 +32,11 @@ app.use('/api/v1/stops', stopRoute);
 
 //Vehicle Routes--> admin adds the type of vehicle and the user cna see it in the display
 const vehicleRoute = require('./routes/vehicleRoutes');
-app.use('/api/v1/vehicle');
+app.use('/api/v1/vehicle', vehicleRoute);
 
 //TripSchedule Routes --> takes routes and vechile as foreign key and admin makes the trip and the user can select his/her desired trip and check the arrival and departure time from his/her stops
-const vehicleRoute = require('./routes/tripScheduleRoutes');
-app.use('/api/v1/trip');
+const tripScheduleRoutes = require('./routes/tripScheduleRoutes');
+app.use('/api/v1/trip', tripScheduleRoutes);
 
 
 // Health check

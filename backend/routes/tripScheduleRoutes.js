@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const tripScheduleController = require('../controllers/tripScheduleController');
+const tripScheduleController = require('../controller/tripScheduleController');
 const { authenticateUser, isAdmin } = require('../middleware/auth');
 
 // User routes - can view trips
