@@ -26,6 +26,19 @@ app.use('/api/v1/auth/users', userRoute); // Match frontend's axios baseURL
 const adminRoute = require('./routes/admin/adminRoutes');
 app.use('/api/v1/auth/admin', adminRoute);
 
+//Stops Rotes
+const stopRoute = require('./routes/stopRoutes');
+app.use('/api/v1/stops', stopRoute);
+
+//Vehicle Routes--> admin adds the type of vehicle and the user cna see it in the display
+const vehicleRoute = require('./routes/vehicleRoutes');
+app.use('/api/v1/vehicle');
+
+//TripSchedule Routes --> takes routes and vechile as foreign key and admin makes the trip and the user can select his/her desired trip and check the arrival and departure time from his/her stops
+const vehicleRoute = require('./routes/tripScheduleRoutes');
+app.use('/api/v1/trip');
+
+
 // Health check
 app.get('/', (req, res) => res.send('API is running'));
 
