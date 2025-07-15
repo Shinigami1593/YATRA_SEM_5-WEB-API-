@@ -38,9 +38,9 @@ app.use('/api/v1/vehicle', vehicleRoute);
 const tripScheduleRoutes = require('./routes/tripScheduleRoutes');
 app.use('/api/v1/trip', tripScheduleRoutes);
 
-
 // Health check
 app.get('/', (req, res) => res.send('API is running'));
 
+module.exports = app;  
 const PORT = process.env.PORT || 5050; // Changed to 5050
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
