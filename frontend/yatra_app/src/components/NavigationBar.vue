@@ -1,5 +1,5 @@
 <template>
-  <nav class="app-nav" v-if="!isAuthPage || !isAdminPage">
+  <nav class="app-nav" v-if="!isAdminPage">
     <div class="nav-content">
       <div class="logo">
         <h1>Yatra</h1>

@@ -104,7 +104,7 @@
                 <input :type="showPassword ? 'text' : 'password'" id="password" v-model="formData.password"
                   placeholder="Create a strong password" required :class="{ 'error': errors.password }" style="width: 385px;"/>
                 <button type="button" class="password-toggle" @click="showPassword = !showPassword">
-                  <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  <i :class="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'"></i>
                 </button>
               </div>
               <div class="password-strength">
@@ -147,21 +147,6 @@
                 Creating account...
               </span>
             </button>
-
-            <div class="divider">
-              <span>or sign up with</span>
-            </div>
-
-            <div class="social-signup">
-              <button type="button" class="social-btn google-btn">
-                <i class="bi bi-google"></i>
-                Google
-              </button>
-              <button type="button" class="social-btn apple-btn">
-                <i class="bi bi-apple"></i>
-                Apple
-              </button>
-            </div>
           </form>
 
           <div class="signin-link">

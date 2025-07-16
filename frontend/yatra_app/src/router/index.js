@@ -5,7 +5,6 @@ import Login from '../views/Auth/SignIn.vue';
 import Register from '../views/Auth/SignUp.vue';
 import Home from '@/views/Home.vue';
 import AdminDashBoard from '@/views/Admin/AdminDashBoard.vue';
-import UserAdd from '@/views/Admin/UserAdd.vue';
 import AddRoute from '@/views/Admin/AddRoute.vue';
 
 const routes = [
@@ -26,15 +25,9 @@ const routes = [
     component: Register,
   },
   {
-    path: '/admin',
+    path: '/admin/dashboard',
     name: 'Admin',
     component: AdminDashBoard,
-    meta: { requiresAuth: true, requiresAdmin: true },
-  },
-  {
-    path: '/addUser',
-    name: 'userAdd',
-    component: UserAdd,
     meta: { requiresAuth: true, requiresAdmin: true },
   },
   {

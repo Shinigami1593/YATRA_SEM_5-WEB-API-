@@ -47,7 +47,7 @@
                 class="password-toggle"
                 @click="showPassword = !showPassword"
               >
-                <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                <i :class="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'"></i>
               </button>
             </div>
             <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
@@ -62,21 +62,6 @@
               Signing in...
             </span>
           </button>
-
-          <div class="divider">
-            <span>or sign in with</span>
-          </div>
-
-          <div class="social-signin">
-            <button type="button" class="social-btn google-btn">
-              <i class="bi bi-google"></i>
-              Google
-            </button>
-            <button type="button" class="social-btn apple-btn">
-              <i class="bi bi-apple"></i>
-              Apple
-            </button>
-          </div>
         </form>
 
         <div class="signup-link">
@@ -185,7 +170,7 @@ const handleSignIn = async () => {
     console.log('Role after login:', role); // Debug role
     if (['admin', 'superadmin', 'moderator'].includes(role)) {
       console.log('Redirecting to /admin'); // Debug
-      router.push('/admin');
+      router.push('/admin/dashboard');
     } else {
       console.log('Redirecting to /home'); // Debug
       router.push('/home');
@@ -213,7 +198,7 @@ onMounted(() => {
     console.log('onMounted - Role:', role); // Debug
     if (['admin', 'superadmin', 'moderator'].includes(role)) {
       console.log('onMounted - Redirecting to /admin'); // Debug
-      router.push('/admin');
+      router.push('/admin/dashboard');
     } else {
       console.log('onMounted - Redirecting to /home'); // Debug
       router.push('/home');
