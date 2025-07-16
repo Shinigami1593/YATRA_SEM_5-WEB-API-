@@ -1,4 +1,6 @@
+// router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
+import { useAuthStore } from '@/stores/Auth'; // Import Pinia store
 import Login from '../views/Auth/SignIn.vue';
 import Register from '../views/Auth/SignUp.vue';
 import Home from '@/views/Home.vue';
@@ -9,48 +11,51 @@ import AddRoute from '@/views/Admin/AddRoute.vue';
 const routes = [
   {
     path: '/home',
-    name: "Home",
-    component: Home
+    name: 'Home',
+    component: Home,
+    meta: { requiresAuth: true },
   },
   {
     path: '/',
     name: 'Login',
-    component: Login
+    component: Login,
   },
   {
     path: '/register',
     name: 'Register',
-    component: Register
+    component: Register,
   },
   {
     path: '/admin',
     name: 'Admin',
     component: AdminDashBoard,
-    // meta: {
-    //   requiresAuth: true,
-    //   roles: ['superadmin','moderator']
-    // }
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/addUser',
     name: 'userAdd',
-    component : UserAdd
+    component: UserAdd,
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/admin/addRoute',
     name: 'routeAdd',
-    component : AddRoute
-  }
+    component: AddRoute,
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 });
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !AuthService.isAuthenticated()) {
-    next('/login');
+  const authStore = useAuthStore();
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next('/'); // Redirect to login if not authenticated
+  } else if (to.meta.requiresAdmin && !['admin', 'superadmin', 'moderator'].includes(authStore.getRole)) {
+    next('/home'); // Redirect non-admins to home
   } else {
     next();
   }

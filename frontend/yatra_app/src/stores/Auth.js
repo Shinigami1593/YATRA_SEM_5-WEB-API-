@@ -1,39 +1,56 @@
+// auth.js (Pinia store)
 import { defineStore } from 'pinia';
-import axios from '../services/axios'; // your axios instance
+import { userApiClient, adminApiClient } from '../services/axios'; // Correct imports
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || null,
     user: JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || null),
-    role: localStorage.getItem('role') || sessionStorage.getItem('role') || null, // Add role to state
+    role: localStorage.getItem('role') || sessionStorage.getItem('role') || null,
   }),
 
   getters: {
     isAuthenticated: (state) => !!state.token,
     getUser: (state) => state.user,
-    getRole: (state) => state.role, // Add getter for role
+    getRole: (state) => state.role,
   },
 
   actions: {
     async login(credentials, rememberMe = false) {
       try {
-        const response = await axios.post('/login', credentials);
+        let response;
+        // Try admin login first
+        try {
+          response = await adminApiClient.post('/login', credentials);
+        } catch (error) {
+          if (
+            error.response &&
+            error.response.status === 400 &&
+            error.response.data.message === 'Invalid credentials'
+          ) {
+            // Try user login
+            response = await userApiClient.post('/login', credentials);
+          } else {
+            throw error;
+          }
+        }
+
         const { token, user } = response.data;
 
         this.token = token;
         this.user = user;
 
-        // Decode token to get role (manual JWT payload extraction)
+        // Decode token to get role
         if (token) {
-          const payload = token.split('.')[1]; // Get the payload part of the JWT
-          const decodedPayload = JSON.parse(atob(payload)); // Decode base64
-          this.role = decodedPayload.role; // Store the role
+          const payload = token.split('.')[1];
+          const decodedPayload = JSON.parse(atob(payload));
+          this.role = decodedPayload.role || 'user';
         }
 
         const storage = rememberMe ? localStorage : sessionStorage;
         storage.setItem('authToken', token);
         storage.setItem('user', JSON.stringify(user));
-        storage.setItem('role', this.role); // Store role
+        storage.setItem('role', this.role);
 
         const otherStorage = rememberMe ? sessionStorage : localStorage;
         otherStorage.removeItem('authToken');
@@ -50,24 +67,25 @@ export const useAuthStore = defineStore('auth', {
           name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
           password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
         };
-        const response = await axios.post('/register', payload); // Define response
+        const response = await userApiClient.post('/register', payload);
         const { token, user } = response.data;
 
         this.token = token;
         this.user = user;
 
-        // Decode token to get role (manual JWT payload extraction)
         if (token) {
-          const payload = token.split('.')[1]; // Get the payload part of the JWT
-          const decodedPayload = JSON.parse(atob(payload)); // Decode base64
-          this.role = decodedPayload.role; // Store the role
+          const payload = token.split('.')[1];
+          const decodedPayload = JSON.parse(atob(payload));
+          this.role = decodedPayload.role || 'user';
         }
 
-        const storage = true ? localStorage : sessionStorage; // Default to localStorage for register (adjust if needed)
+        const storage = true ? localStorage : sessionStorage;
         storage.setItem('authToken', token);
         storage.setItem('user', JSON.stringify(user));
-        storage.setItem('role', this.role); // Store role
+        storage.setItem('role', this.role);
 
         const otherStorage = true ? sessionStorage : localStorage;
         otherStorage.removeItem('authToken');

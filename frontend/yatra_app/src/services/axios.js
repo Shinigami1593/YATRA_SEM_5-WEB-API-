@@ -11,9 +11,9 @@ import axios from 'axios';
     baseURL: 'http://localhost:5050/api/v1/auth/admin',
   });
 
-  export const routeApiClient = axios.create({
-    baseURL: 'http://localhost:5050/api/v1/auth/route',
-  });
+  // export const routeApiClient = axios.create({
+  //   baseURL: 'http://localhost:5050/api/v1/auth/route',
+  // });
 
   // Add request interceptor for both clients
   [userApiClient, adminApiClient].forEach(client => {

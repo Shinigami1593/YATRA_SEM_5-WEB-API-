@@ -92,11 +92,11 @@
 </template>
 
 <script setup>
+// Signin.vue <script>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/Auth';
-import adminApiClient from '@/services/axios'; // Admin client
-import userApiClient from '@/services/axios'; // User client
+import { adminApiClient, userApiClient } from '@/services/axios'; // Correct import
 
 const formData = ref({
   email: '',
@@ -136,7 +136,10 @@ const isValidEmail = (email) => {
 const handleSignIn = async () => {
   loginError.value = '';
 
-  if (!validateForm()) return;
+  if (!validateForm()) {
+    isLoading.value = false;
+    return;
+  }
 
   isLoading.value = true;
 
@@ -145,7 +148,6 @@ const handleSignIn = async () => {
 
     // 1. Try Admin Login First
     try {
-      console.log("post api in process")
       response = await adminApiClient.post('/login', {
         email: formData.value.email,
         password: formData.value.password,
@@ -162,7 +164,7 @@ const handleSignIn = async () => {
           password: formData.value.password,
         });
       } else {
-        throw error; // Some other error occurred
+        throw error; // Rethrow other errors
       }
     }
 
@@ -172,28 +174,22 @@ const handleSignIn = async () => {
       throw new Error('Invalid response from server. Expected token and user.');
     }
 
-    // Decode token payload to extract role
-    const payload = token.split('.')[1];
-    const decodedPayload = JSON.parse(atob(payload));
-    const role = decodedPayload.role || 'user';
-
-    // Save to store and localStorage
-    authStore.token = token;
-    authStore.user = user;
-    authStore.role = role;
-
-    const storage = localStorage;
-    storage.setItem('authToken', token);
-    storage.setItem('user', JSON.stringify(user));
-    storage.setItem('role', role);
+    // Save to store (use Pinia action instead of direct assignment)
+    await authStore.login({
+      email: formData.value.email,
+      password: formData.value.password,
+    });
 
     // Redirect based on role
-    if (role === 'admin' || role === 'superadmin' || role === 'moderator') {
-      await router.push('/admin');
+    const role = authStore.getRole;
+    console.log('Role after login:', role); // Debug role
+    if (['admin', 'superadmin', 'moderator'].includes(role)) {
+      console.log('Redirecting to /admin'); // Debug
+      router.push('/admin');
     } else {
-      await router.push('/home');
+      console.log('Redirecting to /home'); // Debug
+      router.push('/home');
     }
-
   } catch (error) {
     console.error('Login Error:', error);
     if (error.response) {
@@ -213,10 +209,13 @@ const handleSignIn = async () => {
 
 onMounted(() => {
   if (authStore.isAuthenticated) {
-    const role = authStore.getRole();
-    if (role === 'admin' || role === 'superadmin' || role === 'moderator') {
+    const role = authStore.getRole;
+    console.log('onMounted - Role:', role); // Debug
+    if (['admin', 'superadmin', 'moderator'].includes(role)) {
+      console.log('onMounted - Redirecting to /admin'); // Debug
       router.push('/admin');
     } else {
+      console.log('onMounted - Redirecting to /home'); // Debug
       router.push('/home');
     }
   }

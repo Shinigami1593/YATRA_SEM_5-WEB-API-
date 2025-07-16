@@ -181,13 +181,10 @@
 import { ref, computed, defineEmits, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/Auth';
-import apiClient from '@/services/axios';
 import { RouterLink } from 'vue-router';
 
-// Define custom events
 const emit = defineEmits(['signup-success']);
 
-// Reactive state
 const formData = ref({
   firstName: '',
   lastName: '',
@@ -208,24 +205,17 @@ const signupSuccess = ref('');
 const router = useRouter();
 const authStore = useAuthStore();
 
-// Computed properties
 const passwordStrength = computed(() => {
   const password = formData.value.password;
   if (!password) return { class: 'weak', width: '0%', text: '' };
 
   let strength = 0;
-
-  // Length check
   if (password.length >= 8) strength += 1;
   if (password.length >= 12) strength += 1;
-
-  // Character variety checks
   if (/[a-z]/.test(password)) strength += 1;
   if (/[A-Z]/.test(password)) strength += 1;
   if (/[0-9]/.test(password)) strength += 1;
   if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
-
-  console.log('Password strength:', strength);
 
   const strengthPercent = Math.min(strength, 5) / 5 * 100;
   let strengthClass = 'weak';
@@ -246,32 +236,27 @@ const passwordStrength = computed(() => {
   };
 });
 
-// Methods
 const validateForm = () => {
   errors.value = {};
 
-  // First name validation
   if (!formData.value.firstName.trim()) {
     errors.value.firstName = 'First name is required';
   } else if (formData.value.firstName.trim().length < 2) {
     errors.value.firstName = 'First name must be at least 2 characters';
   }
 
-  // Last name validation
   if (!formData.value.lastName.trim()) {
     errors.value.lastName = 'Last name is required';
   } else if (formData.value.lastName.trim().length < 2) {
     errors.value.lastName = 'Last name must be at least 2 characters';
   }
 
-  // Email validation
   if (!formData.value.email) {
     errors.value.email = 'Email is required';
   } else if (!isValidEmail(formData.value.email)) {
     errors.value.email = 'Please enter a valid email address';
   }
 
-  // Password validation
   if (!formData.value.password) {
     errors.value.password = 'Password is required';
   } else if (formData.value.password.length < 8) {
@@ -280,133 +265,66 @@ const validateForm = () => {
     errors.value.password = 'Password is too weak. Use a mix of letters, numbers, and symbols';
   }
 
-  // Confirm password validation
   if (!formData.value.confirmPassword) {
     errors.value.confirmPassword = 'Please confirm your password';
   } else if (formData.value.password !== formData.value.confirmPassword) {
     errors.value.confirmPassword = 'Passwords do not match';
   }
 
-  // Terms agreement validation
   if (!formData.value.agreeToTerms) {
     errors.value.terms = 'You must agree to the Terms of Service and Privacy Policy';
   }
 
-  console.log('Validation errors:', errors.value);
   return Object.keys(errors.value).length === 0;
 };
 
 const isValidEmail = (email) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  console.log('Email valid:', regex.test(email));
   return regex.test(email);
 };
 
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
-
-const toggleConfirmPasswordVisibility = () => {
-  showConfirmPassword.value = !showConfirmPassword.value;
-};
-
 const handleSignup = async () => {
-  console.log('handleSignup called with formData:', formData.value);
   signupError.value = '';
   signupSuccess.value = '';
 
-  if (!validateForm()) {
-    console.log('Validation failed, exiting');
-    return;
-  }
+  if (!validateForm()) return;
 
   isLoading.value = true;
 
   try {
-    console.log('Calling registerUser');
-    const response = await registerUser({
-      name: `${formData.value.firstName} ${formData.value.lastName}`, // Combine firstName and lastName
+    await authStore.register({
+      firstName: formData.value.firstName,
+      lastName: formData.value.lastName,
       email: formData.value.email,
       password: formData.value.password,
-      firstName: formData.value.firstName,
-      lastName: formData.value.lastName, // Include for full user data
     });
 
-    console.log('Signup response:', {
-      status: response.status,
-      data: response.data,
-    });
-
-    // Verify response structure
-    if (!response.data || !response.data.token || !response.data.user) {
-      throw new Error('Invalid response structure from server');
-    }
-
-    // Update Pinia store with auth data
-    authStore.register({
-      token: response.data.token,
-      user: response.data.user,
-      rememberMe: true,
-    });
-
-    // Emit signup success event
     emit('signup-success', {
       email: formData.value.email,
       firstName: formData.value.firstName,
       lastName: formData.value.lastName,
     });
 
-    // Set success message
     signupSuccess.value = 'Account created successfully! Redirecting to dashboard...';
 
-    // Reset form and redirect after a brief delay
     setTimeout(() => {
-      console.log('Redirecting to /');
       resetForm();
       router.push('/');
     }, 2000);
   } catch (error) {
-    console.error('Signup error:', {
-      message: error.message,
-      response: error.response
-        ? {
-            status: error.response.status,
-            data: error.response.data,
-          }
-        : null,
-    });
-
-    // Handle backend errors
-    if (error.response && error.response.data) {
-      const { message, errors } = error.response.data;
-      if (message === 'Email in use') { // Match backend message
-        signupError.value = 'An account with this email already exists.';
-      } else if (errors && Array.isArray(errors)) {
-        errors.forEach((err) => {
-          errors.value[err.param] = err.msg;
-        });
-        signupError.value = 'Please correct the errors in the form.';
-      } else if (message) {
-        signupError.value = message;
-      } else {
-        signupError.value = 'Registration failed. Please try again later.';
-      }
+    if (error.message === 'Email in use') {
+      signupError.value = 'An account with this email already exists.';
+    } else if (error.errors && Array.isArray(error.errors)) {
+      error.errors.forEach((err) => {
+        errors.value[err.param] = err.msg;
+      });
+      signupError.value = 'Please correct the errors in the form.';
     } else {
-      signupError.value = error.message || 'Network error. Please check your connection and try again.';
+      signupError.value = error.message || 'Registration failed. Please try again later.';
     }
   } finally {
     isLoading.value = false;
   }
-};
-
-const registerUser = async (userData) => {
-  console.log('Attempting API call with:', userData);
-  const response = await apiClient.post('/signup', userData); // Update to match backend
-  console.log('Raw Axios response:', response);
-  return {
-    status: response.status,
-    data: response.data,
-  };
 };
 
 const resetForm = () => {
@@ -425,22 +343,21 @@ const resetForm = () => {
   isLoading.value = false;
 };
 
-// Check authentication status on mount
 onMounted(() => {
   if (authStore.isAuthenticated) {
     const user = authStore.getUser;
-    if (user && (user.role === 'moderator' || user.role === 'superadmin')) {
-      router.push('/home'); // Admin already logged in, redirect to dashboard
+    if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+      router.push('/home');
     } else {
-      authStore.logout(); // Non-admin (e.g., driver), log out and redirect to login
+      authStore.logout();
       router.push('/');
     }
   }
 });
 
-// Lifecycle hook equivalent
 resetForm();
 </script>
+
 
 
 <style scoped>
