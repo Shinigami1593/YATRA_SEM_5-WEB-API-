@@ -1,11 +1,16 @@
 const TripSchedule = require('../models/TripSchedule');
+const isValidTime = (timeStr) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(timeStr);
+
 
 exports.createTripSchedule = async (req, res) => {
   try {
-    const { route, vehicle, departureTime, arrivalTime } = req.body;
+    const { route, vehicle, departureTime, arrivalTime, status = 'scheduled' } = req.body;
     if (!route || !vehicle || !departureTime || !arrivalTime) {
       return res.status(400).json({ message: 'All fields are required' });
     }
+    if (!isValidTime(departureTime) || !isValidTime(arrivalTime)) {
+  return res.status(400).json({ message: 'Invalid time format. Use HH:MM (24-hour format).' });
+}
 
     const trip = new TripSchedule({
       route,
@@ -25,7 +30,7 @@ exports.createTripSchedule = async (req, res) => {
 exports.getTripSchedules = async (req, res) => {
   try {
     const trips = await TripSchedule.find()
-      .populate('route', 'name')
+      .populate('route')
       .populate('vehicle', 'type')
       .sort({ departureTime: 1 }); // Sort by soonest departure
 
