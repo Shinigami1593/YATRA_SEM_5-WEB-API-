@@ -6,7 +6,7 @@
       </div>
       <div class="nav-links">
         <a href="/home" @click="setCurrentPage('home')" :class="{ active: currentPage === 'home' }">Home</a>
-        <a href="/route" @click="setCurrentPage('about')" :class="{ active: currentPage === 'route' }">Route</a>
+        <a href="/routes" @click="setCurrentPage('route')" :class="{ active: currentPage === 'route' }">Route</a>
         <a href="/schedule" @click="setCurrentPage('schedule')" :class="{ active: currentPage === 'schedule' }">Schedule</a>
         <a href="/stops" @click="setCurrentPage('stops')" :class="{ active: currentPage === 'stops' }">Stops</a>
         <a href="#" @click.prevent="logout" class="profile-btn">
