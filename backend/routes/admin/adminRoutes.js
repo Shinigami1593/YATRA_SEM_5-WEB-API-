@@ -6,11 +6,12 @@ const { authenticateUser, isAdmin } = require('../../middleware/auth');
 
 router.post('/register', authController.adminRegister);
 router.post('/login', authController.adminLogin);
+router.get('/profile', authenticateUser,isAdmin, authController.getProfile);
 router.get('/users', authenticateUser, isAdmin, authController.getUsers);
 router.get('/users/:id', authenticateUser, isAdmin, authController.getUserById);
 router.put('/users/:id', authenticateUser, isAdmin, authController.updateUser);
 router.delete('/users/:id', authenticateUser, isAdmin, authController.deleteUser);
-
+ 
 router.post('/routes/create', authenticateUser, isAdmin, routeController.createRoute);
 router.get('/routes', authenticateUser, isAdmin, routeController.getAllRoutesAdmin);
 router.get('/routes/inactive', authenticateUser, isAdmin, routeController.getInactiveRoutes);

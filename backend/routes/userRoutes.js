@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const routeController = require('../controller/routeController');
 const authController = require('../controller/authController');
+const tripScheduleController = require('../controller/tripScheduleController')
 const { authenticateUser, validateSignup, validateLogin } = require('../middleware/auth');
 
 router.post('/register', validateSignup, authController.register);
@@ -13,6 +14,9 @@ router.delete('/profile', authenticateUser, authController.deleteProfile);
 router.get('/routes', authenticateUser, routeController.getRoutes);
 router.get('/routes/nearby', authenticateUser, routeController.getRoutes);
 router.get('/routes/:id', authenticateUser, routeController.getRouteById);
+
+//trip
+// router.get('/trip/all,', authenticateUser, tripScheduleController.getTripSchedules);
 
 module.exports = router;
       
