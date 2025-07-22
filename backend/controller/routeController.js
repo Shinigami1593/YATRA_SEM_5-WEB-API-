@@ -136,51 +136,63 @@ exports.getRouteById = async (req, res) => {
 
 exports.updateRoute = async (req, res) => {
   try {
-    const route = await Route.findById(req.params.id);
-    if (!route) return res.status(404).json({ message: 'Route not found' });
-    if (route.user.toString() !== req.user.userId && !req.user.isAdmin) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
-
     const { name, source, destination, coordinates, type, status } = req.body;
     const update = {};
 
     if (name) update.name = name;
     if (source) update.source = source;
     if (destination) update.destination = destination;
+
     if (coordinates) {
+      // coordinates expected as { source: { lat, lon }, destination: { lat, lon } }
       const { source: src, destination: dest } = coordinates;
-      if (!src?.lat || !src?.lon || !dest?.lat || !dest?.lon) {
-        return res.status(400).json({ message: 'Invalid coordinates' });
+
+      if (src?.lat != null && src?.lon != null && dest?.lat != null && dest?.lon != null) {
+        update.coordinates = {
+          source: { type: 'Point', coordinates: [src.lon, src.lat] },
+          destination: { type: 'Point', coordinates: [dest.lon, dest.lat] },
+        };
+      } else {
+        return res.status(400).json({ message: 'Invalid coordinates format' });
       }
-      update.coordinates = {
-        source: { type: 'Point', coordinates: [src.lon, src.lat] },
-        destination: { type: 'Point', coordinates: [dest.lon, dest.lat] },
-      };
     }
-    if (type && ['bus', 'micro', 'tempo'].includes(type)) update.type = type;
-    if (status && ['active', 'inactive'].includes(status)) update.status = status;
+
+    if (type) {
+      if (!['bus', 'micro', 'tempo'].includes(type)) {
+        return res.status(400).json({ message: 'Invalid type' });
+      }
+      update.type = type;
+    }
+
+    if (status) update.status = status;
+
+    console.log('Update Route called with id:', req.params.id);
 
     const updated = await Route.findByIdAndUpdate(req.params.id, update, { new: true });
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Route not found' });
+    }
+
     res.status(200).json({ message: 'Route updated', route: toGeoJson(updated) });
   } catch (error) {
-    console.error(error);
+    console.error('Update route error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
+
+
+
 exports.deleteRoute = async (req, res) => {
   try {
-    const route = await Route.findById(req.params.id);
-    if (!route) return res.status(404).json({ message: 'Route not found' });
-    if (route.user.toString() !== req.user.userId && !req.user.isAdmin) {
-      return res.status(403).json({ message: 'Forbidden' });
+    const deleted = await Route.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Route not found' });
     }
-
-    await route.remove();
     res.status(200).json({ message: 'Route deleted successfully' });
   } catch (error) {
-    console.error(error);
+    console.error('Delete route error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
