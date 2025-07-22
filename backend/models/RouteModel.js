@@ -13,7 +13,7 @@ const routeSchema = new mongoose.Schema({
     source: { type: pointSchema, required: true },
     destination: { type: pointSchema, required: true },
   },
-  type: { type: String, enum: ['bus', 'micro', 'tempo'], required: true },
+  type: { type: String, enum: ['bus', 'micro', 'tempo'], required: false },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 });
