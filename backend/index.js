@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const path = require("path")
 
 dotenv.config();
 const app = express();
@@ -16,7 +17,11 @@ connectDB().then(() => {
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: 'http://localhost:5173' })); // Allow frontend origin
+
+app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
+
 
 // Routes
 const userRoute = require('./routes/userRoutes'); // Match your route file name
