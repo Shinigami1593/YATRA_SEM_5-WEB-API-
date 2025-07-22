@@ -6,11 +6,18 @@
       </div>
       <div class="nav-links">
         <a href="/home" @click="setCurrentPage('home')" :class="{ active: currentPage === 'home' }">Home</a>
-        <a href="/routes" @click="setCurrentPage('route')" :class="{ active: currentPage === 'route' }">Route</a>
-        <a href="/schedule" @click="setCurrentPage('schedule')" :class="{ active: currentPage === 'schedule' }">Schedule</a>
-        <a href="/stops" @click="setCurrentPage('stops')" :class="{ active: currentPage === 'stops' }">Stops</a>
+        <router-link
+            to="/user/all-routes"
+            @click.native="setCurrentPage('routes')"
+            :class="{ active: currentPage === 'routes' }"
+          >
+            Route
+          </router-link>
+
+        <a href="/details-map" @click="setCurrentPage('map')" :class="{ active: currentPage === 'map' }">Route Map</a>
+        <a href="/profile" @click="setCurrentPage('profile')" :class="{ active: currentPage === 'profile' }">Profile</a>
         <a href="#" @click.prevent="logout" class="profile-btn">
-          <i class="bi bi-person-fill"></i>
+          <i class="bi bi-box-arrow-right"></i>
         </a>
       </div>
       <!-- <div class="nav-actions">
@@ -38,7 +45,7 @@ import { useAuthStore } from '@/stores/Auth';
 
 const router = useRouter();
 const authStore = useAuthStore();
-const currentPage = ref('home');
+const currentPage = ref('');
 const isAuthPage = computed(() => ['/', '/register'].includes(router.currentRoute.value.path));
 const isAdminPage = computed(() => router.currentRoute.value.path.startsWith('/admin'));
 
@@ -128,7 +135,7 @@ const logout = () => {
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  color: white;
+  color: rgb(255, 255, 255);
   transition: all 0.3s ease;
 }
 
@@ -144,9 +151,9 @@ const logout = () => {
 }
 
 .profile-btn {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgb(230, 78, 78);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(182, 10, 10, 0.322);
   font-size: 1.5rem; /* Adjust size for icon */
 }
 
