@@ -11,12 +11,15 @@ import axios from 'axios';
     baseURL: 'http://localhost:5050/api/v1/auth/admin',
   });
 
-  // export const routeApiClient = axios.create({
-  //   baseURL: 'http://localhost:5050/api/v1/auth/route',
-  // });
+  export const tripApiClient = axios.create({
+    baseURL: 'http://localhost:5050/api/v1/trip'
+  });
+  export const vehicleApiClient = axios.create({
+    baseURL: 'http://localhost:5050/api/v1/vehicle'
+  });
 
   // Add request interceptor for both clients
-  [userApiClient, adminApiClient].forEach(client => {
+  [userApiClient, adminApiClient, tripApiClient, vehicleApiClient].forEach(client => {
     client.interceptors.request.use(
       (config) => {
         const authStore = useAuthStore();
@@ -29,4 +32,4 @@ import axios from 'axios';
     );
   });
 
-  export default userApiClient; // Default export for backward compatibility if needed
+  export default {userApiClient, adminApiClient,tripApiClient, vehicleApiClient}; // Default export for backward compatibility if needed
