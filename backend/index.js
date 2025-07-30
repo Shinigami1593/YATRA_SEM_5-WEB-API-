@@ -31,9 +31,6 @@ app.use('/api/v1/auth/users', userRoute); // Match frontend's axios baseURL
 const adminRoute = require('./routes/admin/adminRoutes');
 app.use('/api/v1/auth/admin', adminRoute);
 
-//Stops Rotes
-const stopRoute = require('./routes/stopRoutes');
-app.use('/api/v1/stops', stopRoute);
 
 //Vehicle Routes--> admin adds the type of vehicle and the user cna see it in the display
 const vehicleRoute = require('./routes/vehicleRoutes');
