@@ -11,7 +11,7 @@
     </div>
     
     <nav class="sidebar-nav">
-      <div class="nav-section">
+      <!-- <div class="nav-section">
         <h4 v-if="!sidebarCollapsed">Overview</h4>
         <ul>
           <li>
@@ -21,7 +21,7 @@
             </a>
           </li>
         </ul>
-      </div>
+      </div> -->
       
       <div class="nav-section">
         <h4 v-if="!sidebarCollapsed">Management</h4>
@@ -35,8 +35,14 @@
           </li>
           <li>
             <a href="#" @click.prevent="$emit('changeTab', 'routes')" :class="{ 'active': activeTab === 'routes' }">
-              <i class="bi bi-map"></i>
+              <i class="bi bi-signpost-split"></i>
               <span v-if="!sidebarCollapsed">Trip</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" @click.prevent="$emit('changeTab', 'trip')" :class="{ 'active': activeTab === 'trip' }">
+              <i class="bi bi-map"></i>
+              <span v-if="!sidebarCollapsed">Routes</span>
             </a>
           </li>
         </ul>

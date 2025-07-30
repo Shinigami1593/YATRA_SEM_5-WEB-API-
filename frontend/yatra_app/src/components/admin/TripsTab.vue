@@ -55,56 +55,25 @@
 
     <!-- Admin Controls -->
     <div class="admin-controls">
-      <div class="controls-left">
-        <div class="bulk-actions">
-          <input 
-            type="checkbox" 
-            v-model="selectAll" 
-            @change="toggleSelectAll"
-            class="bulk-checkbox"
-          >
-          <span class="bulk-label">Select All ({{ selectedTrips.length }})</span>
-          
-          <div v-if="selectedTrips.length > 0" class="bulk-buttons">
-            <button class="bulk-btn complete" @click="bulkUpdateStatus('completed')">
-              <i class="bi bi-check-circle"></i>
-              Complete Selected
-            </button>
-            <button class="bulk-btn cancel" @click="bulkUpdateStatus('cancelled')">
-              <i class="bi bi-x-circle"></i>
-              Cancel Selected
-            </button>
-            <button class="bulk-btn delete" @click="bulkDelete">
-              <i class="bi bi-trash"></i>
-              Delete Selected
-            </button>
-          </div>
-        </div>
-      </div>
+      
       
       <div class="controls-right">
-        <div class="filter-controls">
-          <select v-model="statusFilter" class="admin-select">
-            <option value="">All Status</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="completed">Completed</option>
-          </select>
-          
-          <select v-model="typeFilter" class="admin-select">
-            <option value="">All Types</option>
-            <option value="bus">Bus</option>
-            <option value="micro">Micro</option>
-            <option value="tempo">Tempo</option>
-          </select>
-          
-          <select v-model="dateFilter" class="admin-select">
-            <option value="">All Dates</option>
-            <option value="today">Today</option>
-            <option value="tomorrow">Tomorrow</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-          </select>
+        <div class="filter-controls main">
+          <div class="filter-controls filter">
+            <select v-model="statusFilter" class="admin-select">
+              <option value="">All Status</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="completed">Completed</option>
+            </select>
+            
+            <select v-model="typeFilter" class="admin-select">
+              <option value="">All Types</option>
+              <option value="bus">Bus</option>
+              <option value="micro">Micro</option>
+              <option value="tempo">Tempo</option>
+            </select>
+          </div>
           
           <div class="search-container">
             <i class="bi bi-search"></i>
@@ -125,18 +94,8 @@
         class="admin-trip-card" 
         v-for="trip in filteredTrips" 
         :key="trip._id"
-        :class="{ 'selected': selectedTrips.includes(trip._id) }"
+        
       >
-        <!-- Selection Checkbox -->
-        <div class="trip-selection">
-          <input 
-            type="checkbox" 
-            :value="trip._id"
-            v-model="selectedTrips"
-            class="trip-checkbox"
-          >
-        </div>
-
         <!-- Trip Header -->
         <div class="admin-trip-header">
           <div class="trip-id">
@@ -731,8 +690,17 @@ onMounted(() => {
 .filter-controls {
   display: flex;
   gap: 1rem;
+  width: max-content;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: space-evenly;
+}
+.filter-controls.main{
+  gap: 880px;
+}
+.admin-controls{
+  display: flex;
+  justify-content: space-evenly;
 }
 
 .admin-select {
