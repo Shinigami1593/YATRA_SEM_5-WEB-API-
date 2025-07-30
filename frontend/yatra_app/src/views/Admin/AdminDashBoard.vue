@@ -1,95 +1,29 @@
 <template>
   <div class="admin-dashboard">
-    <!-- Sidebar -->
-    <aside class="sidebar" :class="{ 'collapsed': sidebarCollapsed }">
-      <div class="sidebar-header">
-        <div class="logo">
-          <i class="bi bi-compass"></i>
-          <span v-if="!sidebarCollapsed">Yatra Admin</span>
-        </div>
-        <button class="sidebar-toggle" @click="toggleSidebar">
-          <i :class="sidebarCollapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left'"></i>
-        </button>
-      </div>
-      
-      <nav class="sidebar-nav">
-        <div class="nav-section">
-          <h4 v-if="!sidebarCollapsed">Overview</h4>
-          <ul>
-            <li>
-              <a href="#" @click="setActiveTab('dashboard')" :class="{ 'active': activeTab === 'dashboard' }">
-                <i class="bi bi-speedometer2"></i>
-                <span v-if="!sidebarCollapsed">Dashboard</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-        
-        <div class="nav-section">
-          <h4 v-if="!sidebarCollapsed">Management</h4>
-          <ul>
-            <li>
-              <a href="#" @click="setActiveTab('users')" :class="{ 'active': activeTab === 'users' }">
-                <i class="bi bi-people"></i>
-                <span v-if="!sidebarCollapsed">Users</span>
-                <span v-if="!sidebarCollapsed" class="badge">{{ totalUsers }}</span>
-              </a>
-            </li>
-            <li>
-              <a href="#" @click="setActiveTab('routes')" :class="{ 'active': activeTab === 'routes' }">
-                <i class="bi bi-map"></i>
-                <span v-if="!sidebarCollapsed">Routes</span>
-              </a>
-            </li>
-          </ul>
-        </div>
+    <Sidebar
+      :sidebarCollapsed="sidebarCollapsed"
+      :activeTab="activeTab"
+      :totalUsers="totalUsers"
+      :adminUser="adminUser"
+      @toggleSidebar="toggleSidebar"
+      @changeTab="setActiveTab"
+      @logout="logout"
+    />
 
-      </nav>
-      
-      <div class="sidebar-footer">
-        <div class="admin-profile">
-          <div class="profile-avatar">
-            <i class="bi bi-person-circle"></i>
-          </div>
-          <div v-if="!sidebarCollapsed" class="profile-info">
-            <h5>{{ adminUser.name }}</h5>
-            <span>{{ adminUser.role }}</span>
-          </div>
-        </div>
-        <button class="logout-btn" @click="logout" :title="sidebarCollapsed ? 'Logout' : ''">
-          <i class="bi bi-box-arrow-right"></i>
-          <span v-if="!sidebarCollapsed">Logout</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
     <main class="main-content">
-      <!-- Header -->
-      <header class="main-header">
-        <div class="header-left">
-          <h1>{{ getPageTitle() }}</h1>
-          <p class="header-subtitle">{{ getPageSubtitle() }}</p>
-        </div>
-        <div class="header-right">
-          <div class="header-actions">
-            <button class="action-btn" @click="toggleNotifications">
-              <i class="bi bi-bell"></i>
-              <span v-if="notifications.length > 0" class="notification-count">{{ notifications.length }}</span>
-            </button>
-            <div class="date-time">
-              <span class="time">{{ currentTime }}</span>
-              <span class="date">{{ currentDate }}</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header
+        :activeTab="activeTab"
+        :notifications="notifications"
+        :currentTime="currentTime"
+        :currentDate="currentDate"
+        :getPageTitle="getPageTitle"
+        :getPageSubtitle="getPageSubtitle"
+        @toggleNotifications="toggleNotifications"
+      />
 
-      <!-- Dashboard Content -->
       <div class="content-area">
         <!-- Dashboard Tab -->
-        <div v-if="activeTab === 'dashboard'" class="dashboard-tab">
-          <!-- Recent Activity -->
+        <!-- <div v-if="activeTab === 'dashboard'" class="dashboard-tab">
           <div class="activity-section">
             <div class="section-header">
               <h3>Recent Activity</h3>
@@ -110,7 +44,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- Users Tab -->
         <div v-if="activeTab === 'users'" class="users-tab">
@@ -130,32 +64,31 @@
                   <th>User</th>
                   <th>Email</th>
                   <th>Join Date</th>
-                  <!-- <th>Status</th> -->
-                  <!-- <th>Routes Used</th> -->
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="user in filteredUsers" :key="user.id">
+                <tr v-for="user in paginatedUsers" :key="user.id">
                   <td>
                     <div class="user-info">
-                      <div class="user-avatar">
-                        <i class="bi bi-person-circle"></i>
+                      <div class="user-avatar" >
+                          <img class="profile"
+                            :src="user.profilePicture ? getBackendImageUrl(user.profilePicture) : defaultAvatar"
+                            alt="">
                       </div>
                       <div class="user-details">
                         <h5>{{ user.name }}</h5>
-                        <!-- <span>{{ user.location }}</span> -->
                       </div>
                     </div>
                   </td>
                   <td>{{ user.email }}</td>
-                  <td>{{ formatDate(user.joinDate) }}</td>
+                  <td>{{ formatDate(user.createdAt) }}</td>
                   <td>
                     <div class="action-buttons">
-                      <button class="action-btn small" @click="editUser(user)" title="Edit">
+                      <!-- <button class="action-btn small" @click="editUser(user)" title="Edit">
                         <i class="bi bi-pencil"></i>
-                      </button>
-                      <button class="action-btn small danger" @click="deleteUser(user)" title="Delete">
+                      </button> -->
+                      <button class="action-btn small danger" @click="deleteUser(user._id)" title="Delete">
                         <i class="bi bi-trash"></i>
                       </button>
                     </div>
@@ -177,52 +110,14 @@
         </div>
 
         <!-- Routes Tab -->
-        <div v-if="activeTab === 'routes'" class="routes-tab" >
-          <div class="routes-header" @click="handleAddRoute">
-            <h3>Route Management</h3>
-            <button class="add-route-btn">
-              <i class="bi bi-plus-circle"></i>
-              Add Route
-            </button>
-          </div>
+        <TripsTab v-if="activeTab === 'routes'"></TripsTab>
 
-          <div class="routes-grid">
-            <div class="route-card" v-for="route in routes" :key="route.id">
-              <div class="route-header">
-                <div class="route-type" :class="route.type">
-                  <i :class="route.icon"></i>
-                  <span>{{ route.type }}</span>
-                </div>
-                <div class="route-status" :class="route.status">
-                  {{ route.status }}
-                </div>
-              </div>
-              <div class="route-content">
-                <h4>{{ route.name }}</h4>
-                <p>{{ route.description }}</p>
-                <div class="route-stats">
-                  <div class="route-stat">
-                    <i class="bi bi-people"></i>
-                    <span>{{ route.users }} users</span>
-                  </div>
-                  <div class="route-stat">
-                    <i class="bi bi-clock"></i>
-                    <span>{{ route.avgTime }} min</span>
-                  </div>
-                </div>
-              </div>
-              <div class="route-actions">
-                <button class="route-btn">Edit</button>
-                <button class="route-btn secondary">View</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdminRoutes v-if="activeTab === 'trip'"></AdminRoutes>
       </div>
     </main>
 
     <!-- Notifications Panel -->
-    <div v-if="showNotifications" class="notifications-panel">
+    <!-- <div v-if="showNotifications" class="notifications-panel">
       <div class="notifications-header">
         <h3>
           <i class="bi bi-bell-fill"></i>
@@ -253,177 +148,79 @@
           Clear All
         </button>
       </div>
-    </div>
+    </div> -->
 
     <!-- Notification Overlay -->
-    <div v-if="showNotifications" class="notification-overlay" @click="closeNotifications"></div>
+    <!-- <div v-if="showNotifications" class="notification-overlay" @click="closeNotifications"></div> -->
 
     <!-- Loading Overlay -->
-    <div v-if="isLoading" class="loading-overlay">
+    <!-- <div v-if="isLoading" class="loading-overlay">
       <div class="loading-spinner">
         <i class="bi bi-hourglass-split"></i>
       </div>
       <p>Loading...</p>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import Sidebar from '@/components/admin/Sidebar.vue'
+import Header from '@/components/admin/Header.vue'
+import TripsTab from '@/components/admin/TripsTab.vue'
 import './Admin.css'
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { adminApiClient, userApiClient } from '@/services/axios';
+import { useAuthStore } from '@/stores/Auth';
+import { useRouter } from 'vue-router';
+import AdminRoutes from './Routes/AdminRoutes.vue'
+import { getBackendImageUrl } from '@/utils/imageHelpers'
 
+const router = useRouter();
+const authStore = useAuthStore();
 
-// Reactive state
-const sidebarCollapsed = ref(false)
-const activeTab = ref('dashboard')
+const sidebarCollapsed = ref(true)
+const activeTab = ref('users')
 const isLoading = ref(false)
-const isRefreshing = ref(false)
 const showNotifications = ref(false)
 const currentTime = ref('')
 const currentDate = ref('')
 const userSearchQuery = ref('')
-const userStatusFilter = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 10
-const userGrowthPeriod = ref('30d')
 
-
-// Admin user data
 const adminUser = reactive({
-  name: 'Ram Sharma',
-  role: 'Super Admin',
-  avatar: null
+  email: '',
+  role: '',
 })
 
-// Chart data
-const userGrowthData = ref([35, 42, 38, 51, 45, 57, 63])
+const users = ref([])
+const defaultAvatar = "https://avatar.iran.liara.run/public/boy"
 
-// Users data (Nepal-specific)
-const users = ref([
-  {
-    id: 1,
-    name: 'Sita Gurung',
-    email: 'sita.gurung@email.com',
-    location: 'Kathmandu',
-    joinDate: '2024-01-15',
-    status: 'active',
-    routesUsed: 45
-  },
-  {
-    id: 2,
-    name: 'Rajesh Shrestha',
-    email: 'rajesh.s@email.com',
-    location: 'Pokhara',
-    joinDate: '2024-02-20',
-    status: 'active',
-    routesUsed: 32
-  },
-  {
-    id: 3,
-    name: 'Maya Tamang',
-    email: 'maya.t@email.com',
-    location: 'Lalitpur',
-    joinDate: '2024-01-08',
-    status: 'inactive',
-    routesUsed: 18
-  },
-  {
-    id: 4,
-    name: 'Bikash Rai',
-    email: 'bikash.rai@email.com',
-    location: 'Chitwan',
-    joinDate: '2024-03-05',
-    status: 'active',
-    routesUsed: 67
-  },
-  {
-    id: 5,
-    name: 'Sunita Thapa',
-    email: 'sunita.t@email.com',
-    location: 'Bhaktapur',
-    joinDate: '2024-02-12',
-    status: 'suspended',
-    routesUsed: 23
+const fetchAdmin = async() => {
+  try{
+    const response = await adminApiClient.get('/profile');
+    const data = response.data
+    adminUser.email = data.email
+    adminUser.role = data.role
+  }catch(error){
+    console.log('Failed to get admin profile: ',error)
   }
-])
+}
 
-// Routes data (Nepal-specific, no trains)
-const routes = ref([
-  {
-    id: 1,
-    name: 'Ring Road Express',
-    description: 'Fast route around Kathmandu Ring Road',
-    type: 'bus',
-    icon: 'bi bi-bus-front',
-    status: 'active',
-    users: 1250,
-    avgTime: 25
-  },
-  {
-    id: 2,
-    name: 'Ratna Park - Balaju',
-    description: 'Main route connecting city center to Balaju',
-    type: 'micro',
-    icon: 'bi bi-truck',
-    status: 'active',
-    users: 890,
-    avgTime: 18
-  },
-  {
-    id: 3,
-    name: 'Airport Shuttle',
-    description: 'Direct connection to Tribhuvan Airport',
-    type: 'bus',
-    icon: 'bi bi-airplane',
-    status: 'maintenance',
-    users: 450,
-    avgTime: 35
-  },
-  {
-    id: 4,
-    name: 'Kathmandu - Pokhara',
-    description: 'Long distance tourist bus route',
-    type: 'bus',
-    icon: 'bi bi-bus-front-fill',
-    status: 'active',
-    users: 320,
-    avgTime: 420
+const fetchUsers = async () => {
+  try{
+    isLoading.value = true;
+    const response = await adminApiClient.get('/users')
+    users.value = response.data.users || []
+  }catch(error){
+    console.error('Failed to fetch user: ',error)
+    users.value = []
+  } finally{
+    isLoading.value = false
   }
-])
+}
 
-// Recent activities
-const recentActivities = ref([
-  {
-    id: 1,
-    type: 'user',
-    icon: 'bi bi-person-plus',
-    description: 'New user registered: Sita Gurung',
-    time: '2 minutes ago',
-    status: 'success',
-    statusText: 'Completed'
-  },
-  {
-    id: 2,
-    type: 'route',
-    icon: 'bi bi-map',
-    description: 'Route updated: Ring Road Express',
-    time: '15 minutes ago',
-    status: 'info',
-    statusText: 'Updated'
-  },
-  {
-    id: 3,
-    type: 'system',
-    icon: 'bi bi-exclamation-triangle',
-    description: 'System maintenance scheduled',
-    time: '1 hour ago',
-    status: 'warning',
-    statusText: 'Pending'
-  }
-])
-
-// Notifications
 const notifications = ref([
   {
     id: 1,
@@ -451,12 +248,7 @@ const notifications = ref([
   }
 ])
 
-
-
-// Computed properties
 const totalUsers = computed(() => users.value.length)
-const unreadFeedback = computed(() => 5)
-const totalRoutes = computed(() => routes.value.reduce((sum, route) => sum + route.users, 0))
 
 const filteredUsers = computed(() => {
   let filtered = users.value
@@ -468,16 +260,18 @@ const filteredUsers = computed(() => {
     )
   }
 
-  if (userStatusFilter.value) {
-    filtered = filtered.filter(user => user.status === userStatusFilter.value)
-  }
-
   return filtered
 })
 
 const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage))
 
-// Methods
+// Pagination of users
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredUsers.value.slice(start, end)
+})
+
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
@@ -488,35 +282,26 @@ const setActiveTab = (tab) => {
 
 const getPageTitle = () => {
   const titles = {
-    dashboard: 'Dashboard',
     analytics: 'Analytics',
     users: 'User Management',
-    routes: 'Route Management',
-    feedback: 'User Feedback',
+    routes: 'Trip Management',
+    trip: 'Route Management',
     settings: 'Settings',
     reports: 'Reports'
   }
-  return titles[activeTab.value] || 'Dashboard'
+  return titles[activeTab.value] || 'User Management'
 }
 
 const getPageSubtitle = () => {
   const subtitles = {
-    dashboard: 'Overview of your Yatra application',
     analytics: 'Detailed insights and metrics',
     users: 'Manage user accounts and permissions',
-    routes: 'Configure and monitor transport routes',
-    feedback: 'User reviews and feedback',
+    routes: 'Configure and monitor transport trips',
+    trip: 'Manage routes',
     settings: 'Application configuration',
     reports: 'Generate and view reports'
   }
   return subtitles[activeTab.value] || ''
-}
-
-const refreshData = async () => {
-  isRefreshing.value = true
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  isRefreshing.value = false
 }
 
 const toggleNotifications = () => {
@@ -539,7 +324,6 @@ const clearAllNotifications = () => {
   showNotifications.value = false
 }
 
-
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US')
 }
@@ -548,20 +332,26 @@ const editUser = (user) => {
   console.log('Edit user:', user)
 }
 
+const deleteUser = async (userId) => {
+  if (!confirm('Are you sure you want to delete this user?')) return;
 
-const deleteUser = (user) => {
-  if (confirm(`Are you sure you want to delete ${user.name}?`)) {
-    const index = users.value.findIndex(u => u.id === user.id)
-    if (index > -1) {
-      users.value.splice(index, 1)
-    }
+  try {
+    await adminApiClient.delete(`/users/${userId}`);
+    users.value = users.value.filter(user => user._id !== userId);
+    console.log('Deleted user:', userId);
+    alert('User deleted successfully.');
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    alert('Failed to delete user.');
   }
-}
+};
 
 const logout = () => {
   if (confirm('Are you sure you want to logout?')) {
-    console.log('Logging out...')
-    router.push("/")
+    authStore.token = null;
+    authStore.user = null;
+    localStorage.removeItem('token');
+    router.push('/');
   }
 }
 
@@ -578,13 +368,11 @@ const updateDateTime = () => {
   })
 }
 
-// Lifecycle hooks
 onMounted(() => {
   updateDateTime()
+  fetchUsers()
+  fetchAdmin()
   const interval = setInterval(updateDateTime, 1000)
-  
-  onUnmounted(() => {
-    clearInterval(interval)
-  })
+  onUnmounted(() => clearInterval(interval))
 })
 </script>
