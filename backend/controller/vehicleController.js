@@ -20,8 +20,11 @@ exports.createVehicle = async (req, res) => {
 
 // Get All Vehicles
 exports.getVehicles = async (req, res) => {
+        // console.log("Fetching vehicles...");
+
   try {
-    const vehicles = await Vehicle.find();
+    const vehicles = await Vehicle.find({});
+
     res.status(200).json({ vehicles });
   } catch (error) {
     console.error('Get vehicles error:', error.message);
