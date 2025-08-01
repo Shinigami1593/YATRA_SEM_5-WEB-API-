@@ -14,11 +14,11 @@ afterAll(async () => {
 
 describe('User and Admin API Tests', () => {
 
-  beforeAll(async () => {
-    // Clean users with test emails before starting
-    await User.deleteMany({ email: /testuser/ });
-    await Admin.deleteMany({ email: /testadmin/ });
-  });
+  // beforeAll(async () => {
+  //   // Clean users with test emails before starting
+  //   await User.deleteMany({ email: /testuser/ });
+  //   await Admin.deleteMany({ email: /testadmin/ });
+  // });
 
   // User Registration - Fail missing fields
   test('User registration fails when required fields are missing', async () => {
@@ -140,8 +140,8 @@ describe('User and Admin API Tests', () => {
     const res = await request(app)
       .post('/api/v1/auth/admin/login')
       .send({
-        email: 'admin@yatra.com',
-        password: 'yatraadmin123'
+        email: 'admin@admin.com',
+        password: 'adminadmin'
       });
 
     expect(res.statusCode).toBe(200);
