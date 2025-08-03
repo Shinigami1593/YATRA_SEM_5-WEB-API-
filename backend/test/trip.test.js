@@ -16,10 +16,6 @@ describe("TripSchedule API Tests", () => {
   beforeAll(async () => {
     // Authenticate Admin
 
-      await User.deleteMany({ email: 'tripuser@example.com' });
-  await Route.deleteMany({ name: /Test Route/ });
-  await Vehicle.deleteMany({ type: /Test Vehicle/ });
-  await TripSchedule.deleteMany({});
     const res = await request(app)
       .post("/api/v1/auth/admin/login")
       .send({ email: "admin@admin.com", password: "adminadmin" });
