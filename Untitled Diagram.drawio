@@ -43,6 +43,9 @@
         <mxCell id="sa_hgIA5oDnt0pCNZjC1-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontSize=13;" value="&lt;div align=&quot;left&quot;&gt;&lt;b&gt;View Lama 1.2&lt;/b&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="124.12" x="90" y="380" as="geometry" />
         </mxCell>
+        <mxCell id="sa_hgIA5oDnt0pCNZjC1-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="View&amp;nbsp;" vertex="1">
+          <mxGeometry height="30" width="60" x="290" y="320" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
